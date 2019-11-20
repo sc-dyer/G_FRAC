@@ -10,7 +10,7 @@ class Sphere(Shape):
 		self.radius = rad
 		self.calcVol()
 
-	def calcVol(self)
+	def calcVol(self):
 		#Calculates the volume of the sphere
 		vol = 4/3*math.pi*self.radius**3
 		self.volume = vol
@@ -28,10 +28,10 @@ class Sphere(Shape):
 
 	def calcRad(self):
 		#working backwards to get radius from volume
-		rad = (self.volume*3/4*math.pi)**(1./3)
+		rad = (self.volume*3/(4*math.pi))**(1./3)
 		self.radius = rad
 
 	def growByVol(self, vol):
-		#Incremebt volume by vol
+		#Increment volume by vol
 		self.volume += vol
 		self.calcRad()

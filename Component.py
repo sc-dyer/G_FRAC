@@ -7,7 +7,7 @@ class Component:
         self.ox2cat = 0 #ratio of O to cation
         self.catNum = 0
         
-    def __init__(self, name, M, ox, cNum, cat):
+    def __init__(self, name, M, ox, cNum):
         
         self.element = name
         self.weight = M

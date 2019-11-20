@@ -14,9 +14,9 @@ class Ellipsoid(Shape):
 		self.cAx = c
 		self.calcVol()
 
-	def calcVol(self)
+	def calcVol(self):
 		#Calculate volume of ellipsoid
-		vol = 4/3*math.pi()*self.aAx*self.bAx*self.cAx
+		vol = 4/3*math.pi*self.aAx*self.bAx*self.cAx
 		self.volume = vol
 
 	def getVolume(self):
@@ -29,7 +29,7 @@ class Ellipsoid(Shape):
 		#Going backwards from volume but assuming aspect ratio is the same
 		ba = self.bAx/self.aAx
 		ca = self.cAx/self.aAx
-		newA = (self.volume*3/(4*math.pi()*ba*ca))**(1./3)
+		newA = (self.volume*3/(4*math.pi*ba*ca))**(1./3)
 		self.aAx = newA
 		self.bAx =newA*ba 
 		self.cAx = newA*ca
@@ -47,6 +47,6 @@ class Ellipsoid(Shape):
 		self.calcVol()
 
 	def growByVol(self, vol):
-
+		#Increment volume by vol
 		self.volume += vol
 		self.calcABC()
