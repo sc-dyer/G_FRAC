@@ -1,12 +1,6 @@
 #A simple class to define elemental components of a rock
 class Component:
     
-    def __init__(self):
-        self.element = None
-        self.weight = 0
-        self.ox2cat = 0 #ratio of O to cation
-        self.catNum = 0
-        
     def __init__(self, name, M, ox, cNum):
         
         self.element = name

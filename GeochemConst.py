@@ -1,7 +1,10 @@
-#Geochem_const.py
+#GeochemConst.py
 #Contains definitions of the different components
 
 from Component import Component
+from GarnetComponent import GarnetComponent
+from ComponentMol import ComponentMol
+
 #Making the components: Input values are name, molar weight, oxide ratio, cation number, Cation name
 Si = Component("Si", 28.086, 2, 1)
 Al = Component("Al", 26.982, 3/2, 2)
@@ -18,12 +21,12 @@ C = Component("C",12.011, 2, 1)
 O = Component("O",15.999,1,1) #Oxide is O2 1:1 ratio
 
 COMPONENTS = [Si, Al, Fe, Mn, Mg, Ca, Na, K, Ti, H, C, O] #No P2O5 because unreliable data, add if desired
-GT_ENDMEM = ['spss','py','gr','alm']#End member codes for garnet in domino
-CMPNT = ["Mn","Mg","Ca","Fe"] #Components of garnet, this corresponds to the order they are placed in the cmpnts array
-GRT_CMPNTS =[Mn,Mg,Ca,Fe]
 GRT_DENSITY = 4.19 #Density in g/cm^3
-M_SPSS = Mn.weight*3 + Al.weight*2 + Si.weight*3 + O.weight*12
-M_PY = Mg.weight*3 + Al.weight*2 + Si.weight*3 + O.weight*12
-M_GR = Ca.weight*3 + Al.weight*2 + Si.weight*3 + O.weight*12
-M_ALM = Fe.weight*3 + Al.weight*2 + Si.weight*3 + O.weight*12
-GRT_M = [M_SPSS,M_PY,M_GR,M_ALM]
+
+
+SPSS = GarnetComponent("Mn","spss",[ComponentMol(Mn,3),ComponentMol(Al,2),ComponentMol(Si,3),ComponentMol(O,12)])
+PY = GarnetComponent("Mg","py",[ComponentMol(Mg,3),ComponentMol(Al,2),ComponentMol(Si,3),ComponentMol(O,12)])
+GR = GarnetComponent("Ca","gr",[ComponentMol(Ca,3),ComponentMol(Al,2),ComponentMol(Si,3),ComponentMol(O,12)])
+ALM = GarnetComponent("Fe","alm",[ComponentMol(Fe,3),ComponentMol(Al,2),ComponentMol(Si,3),ComponentMol(O,12)])
+
+GRT_CMPNT = [SPSS,PY,GR,ALM]

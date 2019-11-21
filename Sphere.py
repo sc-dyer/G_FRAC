@@ -1,6 +1,7 @@
 #Its a sphere
 #A possible shape for a garnet
 #Has a volume and a radius
+#I probably could have made this a special instance of ellipsoid but its too late I already committed
 from Shape import Shape
 import math
 

@@ -10,7 +10,7 @@ import pandas as pd
 import easygui
 
 from CompoProfile import CompoProfile
-from Geochem_Const import CMPNT
+from GeochemConst import GRT_CMPNT
 
 class Traverse(CompoProfile):
 
@@ -31,7 +31,7 @@ class Traverse(CompoProfile):
 		grtdf = pd.read_csv(grtFile)
 		self.x = list(grtdf['x (mm)'])
 		for i in range(len(CMPNT)):
-			self.cmpnts[i] = list(grtdf[CMPNT[i]])
+			self.cmpnts[i] = list(grtdf[GRT_CMPNT[i].cat])
 
 		
 
@@ -48,10 +48,10 @@ class Traverse(CompoProfile):
 		for i in range(len(CMPNT)):
 			self.pltColour = colours[i]
 			self.pltMark = symbols[i]
-			if(CMPNT[i] == "Fe"):
-				CompoProfile.plotCompo(self,CMPNT[i],pltAlm,7)
+			if(GRT_CMPNT[i] == ALM):
+				CompoProfile.plotCompo(self,GRT_CMPNT[i].cat,pltAlm,7)
 			else:
-				CompoProfile.plotCompo(self,CMPNT[i],pltIn,7)
+				CompoProfile.plotCompo(self,GRT_CMPNT[i].cat,pltIn,7)
 
 		pltIn.set_xlabel("x (mm)")
 		pltIn.set_ylabel("X (Ca,Mn,Mg)")
@@ -119,14 +119,14 @@ class Traverse(CompoProfile):
 		for i in range(xRightIndex,len(self.x)):
 			
 			rightTrav.x.append(self.x[i] - xPos)
-			for j in range(len(CMPNT)):
+			for j in range(len(GRT_CMPNT)):
 				rightTrav.cmpnts[j].append(self.cmpnts[j][i])
 			
 
 		#Flips the left Traverse
 		for i in range(xLeftIndex,-1,-1):
 			leftTrav.x.append(xPos - self.x[i])
-			for j in range(len(CMPNT)):
+			for j in range(len(GRT_CMPNT)):
 				leftTrav.cmpnts[j].append(self.cmpnts[j][i])
 
 

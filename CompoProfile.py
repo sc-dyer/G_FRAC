@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import pandas as pd
-from Geochem_Const import CMPNT
+from GeochemConst import GRT_CMPNT
 
 
 class CompoProfile:
@@ -27,8 +27,8 @@ class CompoProfile:
 		#Plots the composition of a specific component in pltIn
 		#input key should be one of the CMPNT
 		#mrkSize input used for convenience when plotting things on different sized plots
-		for i in range(len(CMPNT)):
-			if(key==CMPNT[i]):
+		for i in range(len(GRT_CMPNT)):
+			if(key==GRT_CMPNT[i].cat):
 				yComp = self.cmpnts[i]
 			
 		
@@ -38,8 +38,8 @@ class CompoProfile:
 		#Returns the array of whatever component was input to key
 		#This is for user probing
 		val = []
-		for i in range(len(CMPNT)):
-			if(key==CMPNT[i]):
+		for i in range(len(GRT_CMPNT)):
+			if(key==GRT_CMPNT[i].cat):
 				val = self.cmpnts[i]
 		return val
 
@@ -56,13 +56,13 @@ class CompoProfile:
 		self.rmse= [] #Standard Error as root mean square error
 		self.nrmse = [] #Normalized RMSE
 		
-		for i in range(len(CMPNT)):
+		for i in range(len(GRT_CMPNT)):
 			thisCmpnt = []
 			thatCmpnt = []
 			
 
 			for j in range(len(compare.x)):
-				compoAtX = self.interpCompoAtX(compare.x[j],CMPNT[i])
+				compoAtX = self.interpCompoAtX(compare.x[j],GRT_CMPNT[i].cat)
 				if compoAtX >= 0:
 					thisCmpnt.append(compoAtX)
 					thatCmpnt.append(compare.cmpnts[i][j])
@@ -103,9 +103,9 @@ class CompoProfile:
 
 		compoAtX = -1 
 		if count >= 0 and count <len(self.x):
-			for i in range(len(CMPNT)):
+			for i in range(len(GRT_CMPNT)):
 
-				if CMPNT[i] == key:
+				if GRT_CMPNT[i].cat == key:
 					rightX = self.x[count]
 
 					leftX = self.x[count-1]
