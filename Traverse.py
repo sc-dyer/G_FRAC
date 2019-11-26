@@ -28,9 +28,9 @@ class Traverse(CompoProfile):
 			print(fileName)
 			return
 		
-		grtdf = pd.read_csv(grtFile)
+		grtdf = pd.read_csv(fileName)
 		self.x = list(grtdf['x (mm)'])
-		for i in range(len(CMPNT)):
+		for i in range(len(GRT_CMPNT)):
 			self.cmpnts[i] = list(grtdf[GRT_CMPNT[i].cat])
 
 		
@@ -90,7 +90,7 @@ class Traverse(CompoProfile):
 
 		
 
-	def splitTrav(self,xPos):
+	def splitTrav(self,xPos, selectRight):
 		#Method for splitting the traverse into two halves at the inputted xPos
 		#Assumes xpos will never exactly equal to an x position on the traverse
 		#The two halves are CompoProfile objects with the same data of their respective halves of this Traverse object
@@ -133,8 +133,12 @@ class Traverse(CompoProfile):
 		#Add the two traverses to travSplit
 		if len(rightTrav.x) > 0:
 			self.travSplit.append(rightTrav)
+			if selectRight:
+				return rightTrav
 		if len(leftTrav.x) > 0:
 			self.travSplit.append(leftTrav)
+			if !selectRight:
+				return leftTrav
 	
 
 
