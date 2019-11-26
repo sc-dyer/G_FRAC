@@ -121,9 +121,9 @@ class CompoProfile:
 		return compoAtX #Returns -1 if the first cell was to the right of the input xVal or if it is attempting to interpolate past the model size
 
 
-	def scipyInterp(self, kindIn):
+	def scipyInterp(self, kindIn='linear'):
 		#Function that initializes numpy arrays for each component and interpolates the values to create continuous functions
-
+		#
 		npCmpnts = np.array([np.array(cmpnt) for cmpnt in self.cmpnts]) #Make numpy arrays for each component
 		npX = np.array(self.x)
 		self.interpComp = []

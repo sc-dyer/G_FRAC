@@ -54,3 +54,34 @@ class GarnetCSD:
 			print("Error: No option chosen")
 			return
 
+		#Okay now we need to stretch the garnet profile to fit with the long dimension of the ellipsoid or the radius of the sphere
+
+		for i in range(len(self.grtProfile.x)):
+
+		self.grtProfile.scipyInterp() #Initialize the interpolated numpy arrays
+
+	def quickSortCrystals(self, low, high):
+		#Function to sort the garnets by volume
+		#Lets do a quick sort because thats fun
+		#better to sort biggest to smallest
+		if low < high:
+
+			i = low - 1
+			pivot = self.crystalList[high].getVolume() #Compare every element in list to the pivot
+
+			for j in range(low,high):
+
+				if(self.crystalList[j].getVolume() >= pivot):
+					#Increment i by 1 if j is bigger than pivot
+					#Then swap element at i and j
+
+					i = i + 1
+					self.crystalList[i], self.crystalList[j] = self.crystalList[j], self.crystalList[i]
+			#Swap element at high and element at i + 1
+			#Putting all elements bigger in volume to left of the element at high
+			self.crystalList[i+1], self.crystalList[high] = self.crystalList[high], self.crystalList[i+1]
+
+			pi = i + 1
+
+			self.quickSortCrystals(low, pi-1)
+			self.quickSortCrystals(pi+1, high)
