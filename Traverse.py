@@ -10,7 +10,7 @@ import pandas as pd
 import easygui
 
 from CompoProfile import CompoProfile
-from GeochemConst import GRT_CMPNT
+from GeochemConst import GRT_CMPNT, ALM
 
 class Traverse(CompoProfile):
 
@@ -31,7 +31,7 @@ class Traverse(CompoProfile):
 		grtdf = pd.read_csv(fileName)
 		self.x = list(grtdf['x (mm)'])
 		for i in range(len(GRT_CMPNT)):
-			self.cmpnts[i] = list(grtdf[GRT_CMPNT[i].cat])
+			self.cmpnts[i] = list(grtdf[GRT_CMPNT[i].cation])
 
 		
 
@@ -45,13 +45,13 @@ class Traverse(CompoProfile):
 		self.travPlot = pltIn #Saves the plot to the object
 
 		#Loop for plotting
-		for i in range(len(CMPNT)):
+		for i in range(len(GRT_CMPNT)):
 			self.pltColour = colours[i]
 			self.pltMark = symbols[i]
 			if(GRT_CMPNT[i] == ALM):
-				CompoProfile.plotCompo(self,GRT_CMPNT[i].cat,pltAlm,7)
+				CompoProfile.plotCompo(self,GRT_CMPNT[i].cation,pltAlm,7)
 			else:
-				CompoProfile.plotCompo(self,GRT_CMPNT[i].cat,pltIn,7)
+				CompoProfile.plotCompo(self,GRT_CMPNT[i].cation,pltIn,7)
 
 		pltIn.set_xlabel("x (mm)")
 		pltIn.set_ylabel("X (Ca,Mn,Mg)")
@@ -67,7 +67,7 @@ class Traverse(CompoProfile):
 		#This is to set up the stuff for splitting the plot in half, assuming that you input a full traverse instead of a half traverse
 		self.cid = pltIn.figure.canvas.mpl_connect('button_press_event',self.travClick)
 		self.splitLine = pltIn.plot([0],[0]) #create an empty line
-		self.splitTrav(self.x[0] - 1)#Sets the baseline to leftTrav is empty and rightTrav = this. This is basically if you want to input just a half traverse, however it assumes that it is the right half
+		self.selectedTrav = self.splitTrav(self.x[0] - 1,False)#Sets the baseline to leftTrav is empty and rightTrav = this. This is basically if you want to input just a half traverse, however it assumes that it is the right half
 
 	def travClick(self, event):
 		#When the plot is clicked, draw a vertical line where clicked and store that value as the new 0 for splitting the traverse
@@ -84,13 +84,15 @@ class Traverse(CompoProfile):
 		answer = easygui.boolbox(msg,title,["Yes","No"])
 		#answer = input('Split traverse at x = ' + str(newZero) +'? (y/n)')
 		if answer:
-			self.splitTrav(newZero)
+			msg = "Take the left or right side?"
+			selLeft = easygui.boolbox(msg,title,["Left","Right"])
+			self.selectedTrav = self.splitTrav(newZero,selLeft)
 			plt.draw()
 			print("Done, you may now exit this plot or choose a different x location to split the traverse.")
 
 		
 
-	def splitTrav(self,xPos, selectRight):
+	def splitTrav(self,xPos, selectLeft):
 		#Method for splitting the traverse into two halves at the inputted xPos
 		#Assumes xpos will never exactly equal to an x position on the traverse
 		#The two halves are CompoProfile objects with the same data of their respective halves of this Traverse object
@@ -133,11 +135,11 @@ class Traverse(CompoProfile):
 		#Add the two traverses to travSplit
 		if len(rightTrav.x) > 0:
 			self.travSplit.append(rightTrav)
-			if selectRight:
+			if not selectLeft:
 				return rightTrav
 		if len(leftTrav.x) > 0:
 			self.travSplit.append(leftTrav)
-			if !selectRight:
+			if selectLeft:
 				return leftTrav
 	
 

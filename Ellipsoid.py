@@ -50,3 +50,16 @@ class Ellipsoid(Shape):
 		#Increment volume by vol
 		self.volume += vol
 		self.calcABC()
+
+	def getRescale(self, factor):
+		#Returns a new ellipsoid that is the same as this one but rescaled by "factor"
+		ba = self.bAx/self.aAx
+		ca = self.cAx/self.aAx
+		newA = self.aAx/factor
+		newB = newA*ba
+		newC = newA*ca 		
+		newEllipsoid = Ellipsoid(newA, newB, newC)
+
+		return newEllipsoid
+
+

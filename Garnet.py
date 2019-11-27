@@ -17,18 +17,20 @@ class Garnet:
 	#I guess for ellipsoids since shell thickness varies depending on the axis we will define shell thickness as the one used for the a axis
 	def __init__(self,crystalShape,grtCompo,nextGarnet=None):
 		self.grtShape = crystalShape
-		self.shellThick = self.grtShape.getDim()#Gets radius for sphere and aAx for ellipsoid
+		
 		self.composition = grtCompo #This should be an array of GarnetComponentMol, this is the composition of this shell
 		self.density = GRT_DENSITY #Assumes same density for all (just for now I guess)
 
 		self.nextShell = nextGarnet #base case is None, the next garnet can have its own composition and density
 
-
+		self.bigAx = self.grtShape.getDim()
 		self.totVol = self.grtShape.getVolume() #Total volume is same as shape volume
 		if(nextGarnet != None):
 			self.shellVol = self.totVol - self.nextShell.totVol #Shell volume is the total volume less total volume of the next smallest shell
+			#self.shellThick = self.grtShape.getDim() - self.nextShell.grtShape.getDim()
 		else:
 			self.shellVol = self.totVol #Base case tot and shell vol are same
+			#self.shellThick = self.grtShape.getDim()#Gets radius for sphere and aAx for ellipsoid
 		#Get the mols of the shell and the mols of the garnet
 		self.calcShellMol() 
 		self.calcTotMol()
@@ -69,4 +71,16 @@ class Garnet:
 				totMol = self.nextShell.totComposition[i].mol + self.composition[i].mol #calculate the total mol for this component
 				thisComposition = GarnetComponentMol(self.composition[i],molIn=totMol) #Mol fraction will be zero
 				self.totComposition.append(thisComposition)#Takes total from the next shell and adds it to current shell
-			
+	
+	def growGarnet(self, growDim, compo):
+		#Grows the garnet by growDim with composition of compo
+		newShape = copy.deepcopy(self.grtShape)
+		newShape.growByDim(growDim)
+		self = Garnet(newShape,compo,self)
+
+	def getCompoAsComponentMol(self):
+		#Gets the composition of the garnet as a list of ComponentMol
+		molList = self.composition[0].getComponentMol()
+		for i in range(len(self.composition)):
+
+

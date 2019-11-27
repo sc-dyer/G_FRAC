@@ -10,3 +10,14 @@ class GarnetComponentMol(GarnetComponent):
 		super().__init__(grtIn.cation,grtIn.endMember,grtIn.formula)
 		self.molFrac = xIn #This should add to 1 with the other garnet components
 		self.mol = molIn
+
+	def getComponentMols(self):
+		#Method that returns a list of ComponentMols which make up the GarnetComponentMol
+		componentList = []
+
+		for i in range(len(self.formula)):
+			#For each component in the formula, multiply it by the mol of the garnetComponent
+			mol = self.formula[i].mol*self.mol
+			compenentList.append(ComponentMol(formula[i],mol))
+
+		return componentList

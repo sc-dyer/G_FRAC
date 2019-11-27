@@ -28,7 +28,7 @@ class CompoProfile:
 		#input key should be one of the CMPNT
 		#mrkSize input used for convenience when plotting things on different sized plots
 		for i in range(len(GRT_CMPNT)):
-			if(key==GRT_CMPNT[i].cat):
+			if(key==GRT_CMPNT[i].cation):
 				yComp = self.cmpnts[i]
 			
 		
@@ -39,7 +39,7 @@ class CompoProfile:
 		#This is for user probing
 		val = []
 		for i in range(len(GRT_CMPNT)):
-			if(key==GRT_CMPNT[i].cat):
+			if(key==GRT_CMPNT[i].cation):
 				val = self.cmpnts[i]
 		return val
 
@@ -62,7 +62,7 @@ class CompoProfile:
 			
 
 			for j in range(len(compare.x)):
-				compoAtX = self.interpCompoAtX(compare.x[j],GRT_CMPNT[i].cat)
+				compoAtX = self.interpCompoAtX(compare.x[j],GRT_CMPNT[i].cation)
 				if compoAtX >= 0:
 					thisCmpnt.append(compoAtX)
 					thatCmpnt.append(compare.cmpnts[i][j])
@@ -105,7 +105,7 @@ class CompoProfile:
 		if count >= 0 and count <len(self.x):
 			for i in range(len(GRT_CMPNT)):
 
-				if GRT_CMPNT[i].cat == key:
+				if GRT_CMPNT[i].cation == key:
 					rightX = self.x[count]
 
 					leftX = self.x[count-1]

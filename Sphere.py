@@ -33,7 +33,7 @@ class Sphere(Ellipsoid):
 	 	#working backwards to get radius from volume
 	 	super.calcABC()
 	 	self.radius = self.aAx
-	# 	self.radius = rad
+	
 
 	# def growByVol(self, vol):
 	# 	#Increment volume by vol
