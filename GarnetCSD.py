@@ -8,6 +8,8 @@ from Shape import Shape
 from Sphere import Sphere
 from Ellipsoid import Ellipsoid
 from CompoProfile import CompoProfile
+from ComponentMol import *
+from GarnetComponentMol import GarnetComponentMol
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -16,7 +18,7 @@ import easygui
 import math
 import copy
 
-NUM_SHELLS = 5000 #This is the number of garnet shells the biggest garnet will have 
+NUM_SHELLS = 2000 #This is the number of garnet shells the biggest garnet will have 
 
 class GarnetCSD:
 
@@ -34,15 +36,16 @@ class GarnetCSD:
 		msg = "Are garnets spheres or ellipsoids?"
 		title = ""
 		choices = ["Sphere","Ellipsoid"]
-		reply = easygui.buttonbox(msg,title,choices)
-
+		#reply = easygui.buttonbox(msg,title,choices)
+		reply = "Sphere" #Only works for Spheres right now, need to think about size independent growth of ellipsoids
 		if(reply==choices[0]):
 			volume = list(blobDF['Volume (mm^3)'])
 
 			for i in range(len(volume)):
 				#If spheres, it will recalculate the radius from the volume
-				thisRad = (volume[i]*3/(4*math.pi))**(1./3)
-				self.crystaList.append(Sphere(thisRad))
+				if not math.isnan(volume[i]):
+					thisRad = (volume[i]*3/(4*math.pi))**(1./3)
+					self.crystalList.append(Sphere(thisRad))
 
 		elif(reply == choices[1]):
 			#If ellipsoid it uses the PEllipsoid data
@@ -52,12 +55,15 @@ class GarnetCSD:
 			rad3 = list(blobDF['PEllipsoid Rad3 (mm)'])
 
 			for i in range(len(rad1)):
-				self.crystalList.append(Ellipsoid(rad1[i],rad2[i],rad3[i]))
+				if not math.isnan(rad1[i]):
+					self.crystalList.append(Ellipsoid(rad1[i],rad2[i],rad3[i]))
 		else:
 			print("Error: No option chosen")
 			return
 
 		#Okay now we need to stretch the garnet profile to fit with the long dimension of the ellipsoid or the radius of the sphere
+		
+		
 		self.quickSortCrystals(0,len(self.crystalList)-1)
 		travRad = max(self.grtProfile.x) #Radius of the garnet measured in the microprobe profile
 		scaleFactor = self.crystalList[0].getDim()/travRad #The scaling factor to convert the x values in grtProfile to be the same size as the radius or a axis of ellipsoid
@@ -80,7 +86,7 @@ class GarnetCSD:
 
 			i = low - 1
 			pivot = self.crystalList[high].getVolume() #Compare every element in list to the pivot
-
+			
 			for j in range(low,high):
 
 				if(self.crystalList[j].getVolume() >= pivot):
@@ -89,24 +95,32 @@ class GarnetCSD:
 
 					i = i + 1
 					self.crystalList[i], self.crystalList[j] = self.crystalList[j], self.crystalList[i]
+
 			#Swap element at high and element at i + 1
 			#Putting all elements bigger in volume to left of the element at high
 			self.crystalList[i+1], self.crystalList[high] = self.crystalList[high], self.crystalList[i+1]
 
 			pi = i + 1
-
+			
 			self.quickSortCrystals(low, pi-1)
 			self.quickSortCrystals(pi+1, high)
 
-	def fractionateGarnets(self, radInterval):
+	def fractionateGarnet(self, radInterval):
 		#A method to fractionate garnet and output the composition at each radInterval
 		count = 1
-		while(self.garnetList[0].bigAx < self.crystalList[i].getDim()):
-
+		self.growGarnetShell()
+		while(self.garnetList[0].bigAx < self.crystalList[0].getDim()-self.shellThick):
+			#Grow garnet until the biggest garnet is one shell away from its max size
 			self.growGarnetShell()
-			if(abs(garnetList[0].bigAx-radInterval*count)<self.shellThick)
+			
+			if(abs(self.garnetList[0].bigAx-radInterval*count)<self.shellThick):
 				count += 1
+				print("Biggest Radius = " + str(self.garnetList[0].bigAx))
+				print(self.garnetList[0].composition[0].endMember + ": " + str(self.garnetList[0].composition[0].molFrac))
+				print("Number of garnets: " + str(len(self.garnetList)))
+				
 
+		print("One more iteration: " + str(self.crystalList[0].getDim()))
 
 	def growGarnetShell(self):
 		#Function to grow an additional shell of garnet
@@ -114,36 +128,45 @@ class GarnetCSD:
 
 		if len(self.garnetList) == 0: #Initialize first garnet
 			firstShellCompo = self.getShellCompo(self.shellThick,0)
-			nucleateGarnet(self.crystalList[0],firstShellCompo)
+			self.nucleateGarnet(self.crystalList[0],firstShellCompo)
+			print("Nucleating first garnet")
 		else:
 			#First calculate the next composition interval
 			biggestRad = self.garnetList[0].bigAx
 			nextShellRad = biggestRad + self.shellThick
-			nextShellCompo = self.getShellCompo(nextShell,biggestRad)
+			nextShellCompo = self.getShellCompo(nextShellRad,biggestRad)
+
+			#print("Next Shell Rad:" + str(nextShellRad))
+			#print("Next Shell " + nextShellCompo[0].endMember + ": " + str(nextShellCompo[0].molFrac))
+
 			#Grow each garnet with composition nextShellCompo and thickness of shellThick
 			for i in range(len(self.garnetList)):
-				self.garnetList[i].growGarnet(nextShellCompo, self.shellThick)
+
+				self.garnetList[i] = self.garnetList[i].growGarnet(nextShellCompo, self.shellThick)
 
 			#Check if new garnet needs to be nucleated
-			if(len(self.crystalList) > self.garnetList):
-				nucThresh = self.crystalList(len(self.garnetList)-1)-self.crystalList(len(self.garnetList))
+			if(len(self.crystalList) > len(self.garnetList)):
+				nucThresh = self.crystalList[len(self.garnetList)-1].getDim()-self.crystalList[len(self.garnetList)].getDim()
+
+				#print("Nucleation thershold: " + str(nucThresh))
 
 				#Check if the youngest garnet is big enough to justify nucleation of a new garnet
 				if self.garnetList[len(self.garnetList)-1].bigAx >= nucThresh:
-					nucleateGarnet(self.crystalList(len(self.garnetList)),nextShellCompo)
 
+					#print("Smallest Garnet Radius: " + str(self.garnetList[len(self.garnetList)-1].bigAx))
 
-
-
+					self.nucleateGarnet(self.crystalList[len(self.garnetList)],nextShellCompo)
 
 	def getShellCompo(self,xHi,xLo):
 		#Gets the average composition of the profile between xHi and xLo and returns it
 		#As a list of GarnetComponentMols
 		shellCompo = []
-			for i in range(self.grtProfile.interpComp):
-				thisProfile = self.grtProfile.interpComp[i]
-				shellX = (thisProfile(xHi) + thisProfile(xLo))/2
-				shellCompo.append(GarnetComponentMol(GRT_CMPNT[i],shellX))
+
+		for i in range(len(self.grtProfile.interpComp)):
+			thisProfile = self.grtProfile.interpComp[i]
+			
+			shellX = (thisProfile(xHi) + thisProfile(xLo))/2
+			shellCompo.append(GarnetComponentMol(GRT_CMPNT[i],shellX))
 		return shellCompo
 
 	def nucleateGarnet(self, garnetShape,garnetCompo):
@@ -159,8 +182,11 @@ class GarnetCSD:
 	def calcTotalGarnetMol(self):
 		#Calculate total mols of all garnet components
 		#This will return an array of ComponentMol not GarnetComponentMol
-		totGarnetMol = [] #Get the composition of the first garnet
-		for i in range(len(self.garnetList[0].composition)):
+		self.totGarnetMol = self.garnetList[0].getCompoAsComponentMol() #Get the composition of the first garnet
+
 		for i in range(1,len(self.garnetList)):
+			#Add each garnet composition to totGarnetMol
+			self.totGarnetMol = addComponentList(self.totGarnetMol,self.garnetList[i].getCompoAsComponentMol())
+
 
 

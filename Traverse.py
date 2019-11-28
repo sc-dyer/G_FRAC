@@ -118,6 +118,15 @@ class Traverse(CompoProfile):
 		leftTrav.pltColour = 'blue' #So it can be differentiated on the plot
 
 		#Build the contained arrays
+		#First calculate the value at 0 using linear interpolation
+		#This allows for modelling from 0
+		rightTrav.x.append(0)
+		leftTrav.x.append(0)
+		for i in range(len(GRT_CMPNT)):
+			#Append the composition at 0 to both left and right traverse since they should be the same
+			zeroVal = self.interpCompoAtX(xPos,GRT_CMPNT[i].cation)
+			rightTrav.cmpnts[i].append(zeroVal)
+			leftTrav.cmpnts[i].append(zeroVal)
 		for i in range(xRightIndex,len(self.x)):
 			
 			rightTrav.x.append(self.x[i] - xPos)

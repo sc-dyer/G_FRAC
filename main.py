@@ -57,7 +57,7 @@ if travIn != None:
 	#Now a code block to parse the THERIN
 	composition = [] #Array to append Component mols
 	therinList = re.split('\(|\)',therin)#Should make an array in form [component, mol, component, mol....]
-	print(therinList)
+	#print(therinList)
 	#Cycle through therinList array 2 at a time, to go from one component name to the next
 	for i in range(0, len(therinList),2):
 		#Compare to each component in COMPONENTS
@@ -69,8 +69,8 @@ if travIn != None:
 				composition.append(thisComponent)
 
 
-	for i in range(len(composition)):
-		print(composition[i].element + ": " + str(composition[i].mol))
+	#for i in range(len(composition)):
+		#print(composition[i].element + ": " + str(composition[i].mol))
 
 	#Now ask user for rock volume
 	msg = "Please input the volume of rock scanned (mm^3)"
@@ -80,7 +80,11 @@ if travIn != None:
 	#blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
 	blobIn = "/home/sabastien/Documents/Carleton/Blob Output/18ZE-R-77A-dat.xls.xlsx"
 	if blobIn != None:
+		#now make the csd
 		scannedCSD = GarnetCSD(blobIn,trav.selectedTrav,composition,scannedVol)
+
+		radInterval = 0.1
+		scannedCSD.fractionateGarnet(radInterval)
 	else:
 		print("No blob file chosen, ending program...")
 else:

@@ -6,7 +6,7 @@
 from Shape import Shape 
 from GeochemConst import *
 from Component import Component
-from ComponentMol import ComponentMol
+from ComponentMol import *
 from GarnetComponent import GarnetComponent
 from GarnetComponentMol import GarnetComponentMol
 import copy
@@ -72,15 +72,26 @@ class Garnet:
 				thisComposition = GarnetComponentMol(self.composition[i],molIn=totMol) #Mol fraction will be zero
 				self.totComposition.append(thisComposition)#Takes total from the next shell and adds it to current shell
 	
-	def growGarnet(self, growDim, compo):
+	def growGarnet(self, compo, growDim):
 		#Grows the garnet by growDim with composition of compo
 		newShape = copy.deepcopy(self.grtShape)
+
+		#print("Old radius: " + str(newShape.getDim()))
+		
 		newShape.growByDim(growDim)
-		self = Garnet(newShape,compo,self)
+
+		#print("New radius: " + str(newShape.getDim()))
+
+		newShell = Garnet(newShape,compo,nextGarnet = self)
+		return newShell
 
 	def getCompoAsComponentMol(self):
 		#Gets the composition of the garnet as a list of ComponentMol
 		molList = self.composition[0].getComponentMol()
-		for i in range(len(self.composition)):
+		for i in range(1,len(self.composition)):
+			#Cycles through every garnet component converts to a list of ComponentMols and sums it with molList
+			thisMolList = self.composition[i].getComponentMol()
+			molList = addComponentList(molList,thisMolList)
+		return molList
 
 

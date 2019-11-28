@@ -18,3 +18,15 @@ class ComponentMol(Component):
 			summedMol = self.mol + otherComp.mol
 			return ComponentMol(self,summedMol)
 		#returns nothing if they dont match
+
+
+def addComponentList(cList1, cList2):
+	#This is a function to add together the composition of cList1 and cList2
+	#Returns another list of componentmols
+	summedList = []
+	for i in range(len(cList1)):
+		#cycle through cList1 and try to add every component from cList2
+		for j in range(len(clist2)):
+			summedList.append(cList1[i].sumComponents(cList2[j]))
+	
+	return summedList
