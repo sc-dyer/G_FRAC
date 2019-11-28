@@ -3,7 +3,7 @@ from GarnetCSD import GarnetCSD
 from Sphere import Sphere
 from Ellipsoid import Ellipsoid
 from GeochemConst import *
-from ComponentMol import ComponentMol
+from ComponentMol import *
 from GarnetComponentMol import GarnetComponentMol
 from Traverse import Traverse
 from CompoProfile import CompoProfile
@@ -16,16 +16,42 @@ import re
 # testSphere = Sphere(0.5)
 # testCompo = [GarnetComponentMol(SPSS,0.25),GarnetComponentMol(PY,0.25),GarnetComponentMol(GR,0.25),GarnetComponentMol(ALM,0.25)]
 # testGarnetBase = Garnet(testSphere,testCompo)
-# testSphere.growByDim(2)
-# print(testGarnetBase.totComposition[0].mol)
+# #testSphere.growByDim(2)
+# print(testGarnetBase.totComposition[0].endMember + ": " + str(testGarnetBase.totComposition[0].mol))
 # biggerSphere = Sphere(2)
 # nextShellCompo = [GarnetComponentMol(SPSS,0.7),GarnetComponentMol(PY,0.1),GarnetComponentMol(GR,0.1),GarnetComponentMol(ALM,0.1)]
-# biggerGarnet = Garnet(testSphere,nextShellCompo,testGarnetBase)
-# print(biggerGarnet.totComposition[0].mol)
+# biggerGarnet = testGarnetBase.growGarnet(nextShellCompo,1.5)#Garnet(testSphere,nextShellCompo,testGarnetBase)
+# otherBigGrt = Garnet(biggerSphere,nextShellCompo,testGarnetBase)
+# print(biggerGarnet.totComposition[0].endMember+ ": " + str(biggerGarnet.totComposition[0].mol))
+# secondComponent  = biggerGarnet.getCompoAsComponentMol()
+# componentMolList = testGarnetBase.getCompoAsComponentMol()
+# bigComponent = otherBigGrt.getCompoAsComponentMol()
 
+# print("First garnet:")
+# for i in range(len(componentMolList)):
+# 	print(componentMolList[i].element + ": " + str(componentMolList[i].mol))
+
+# print("Second garnet:")
+# for i in range(len(secondComponent)):
+# 	print(secondComponent[i].element + ": " + str(secondComponent[i].mol))
+
+# print("Third Garnet:")
+# for i in range(len(bigComponent)):
+# 	print(bigComponent[i].element + ": " + str(bigComponent[i].mol))
+
+# print("Sum:")
+# #componentList = biggerGarnet.getCompoAsComponentMol()
+# componentList = addComponentList(bigComponent, secondComponent)
+# for i in range(len(componentList)):
+# 	print(componentList[i].element + ": " + str(componentList[i].mol))
 # siConc = ComponentMol(Si, 2)
-# print(siConc.mol)
+# siConc2 = ComponentMol(Si,5)
+# siConc = siConc.sumComponents(siConc2)
+# print("Si: " + str(siConc.mol))
 
+
+
+# exit()
 #Begin the actual program
 #Start by getting the traverse data:
 

@@ -2,6 +2,7 @@
 #There is probably a more polymorphic way to implement these but this works for now
 #By for now I mean forever
 from GarnetComponent import GarnetComponent
+from ComponentMol import *
 
 class GarnetComponentMol(GarnetComponent):
 
@@ -18,6 +19,6 @@ class GarnetComponentMol(GarnetComponent):
 		for i in range(len(self.formula)):
 			#For each component in the formula, multiply it by the mol of the garnetComponent
 			mol = self.formula[i].mol*self.mol
-			compenentList.append(ComponentMol(formula[i],mol))
-
+			componentList.append(ComponentMol(self.formula[i],mol))
+			
 		return componentList

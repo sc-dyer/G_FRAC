@@ -77,7 +77,7 @@ class Garnet:
 		newShape = copy.deepcopy(self.grtShape)
 
 		#print("Old radius: " + str(newShape.getDim()))
-		
+
 		newShape.growByDim(growDim)
 
 		#print("New radius: " + str(newShape.getDim()))
@@ -87,10 +87,14 @@ class Garnet:
 
 	def getCompoAsComponentMol(self):
 		#Gets the composition of the garnet as a list of ComponentMol
-		molList = self.composition[0].getComponentMol()
+		molList = self.totComposition[0].getComponentMols()
+
+		#print(molList[0].element + ": " + str(molList[0].mol))
+
 		for i in range(1,len(self.composition)):
 			#Cycles through every garnet component converts to a list of ComponentMols and sums it with molList
-			thisMolList = self.composition[i].getComponentMol()
+			thisMolList = self.totComposition[i].getComponentMols()
+
 			molList = addComponentList(molList,thisMolList)
 		return molList
 

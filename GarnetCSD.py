@@ -118,6 +118,9 @@ class GarnetCSD:
 				print("Biggest Radius = " + str(self.garnetList[0].bigAx))
 				print(self.garnetList[0].composition[0].endMember + ": " + str(self.garnetList[0].composition[0].molFrac))
 				print("Number of garnets: " + str(len(self.garnetList)))
+				self.calcTotalGarnetMol()
+				for i in range(len(self.totGarnetMol)):
+					print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
 				
 
 		print("One more iteration: " + str(self.crystalList[0].getDim()))
@@ -184,9 +187,16 @@ class GarnetCSD:
 		#This will return an array of ComponentMol not GarnetComponentMol
 		self.totGarnetMol = self.garnetList[0].getCompoAsComponentMol() #Get the composition of the first garnet
 
+
 		for i in range(1,len(self.garnetList)):
 			#Add each garnet composition to totGarnetMol
-			self.totGarnetMol = addComponentList(self.totGarnetMol,self.garnetList[i].getCompoAsComponentMol())
 
+			thisGarnetCompo = self.garnetList[i].getCompoAsComponentMol()
 
+	
+
+			self.totGarnetMol = addComponentList(self.totGarnetMol,thisGarnetCompo)
+			
+
+	#def writeScriptFiles(self):
 
