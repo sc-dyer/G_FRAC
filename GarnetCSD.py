@@ -10,6 +10,8 @@ from Ellipsoid import Ellipsoid
 from CompoProfile import CompoProfile
 from ComponentMol import *
 from GarnetComponentMol import GarnetComponentMol
+from SCRIPT_Generator import *
+
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -19,17 +21,22 @@ import math
 import copy
 
 NUM_SHELLS = 2000 #This is the number of garnet shells the biggest garnet will have 
+DATABASE = "tcsb55c2_COH"
+T1 = 450
+T2 = 650
+P1 = 2000
+P2 = 10000
 
 class GarnetCSD:
 
-	def __init__(self,blobFileName,garnetProfile,rockCompo, rockVolume):
+	def __init__(self,blobFileName,garnetProfile,rockCompo, rockVolume, sampleName):
 
 		self.composition = rockCompo #This is a list of ComponentMol objects that define the rock composition
 		self.grtProfile = garnetProfile #This is the CompoProfile object that is a half profile that defines the zoning in the garnet
 		self.rockVol = rockVolume
 		#Now need to open up the blob file to build the crystal list
 		blobDF = pd.read_excel(blobFileName) #Assumes that formatting has not changed from default blob output
-
+		self.name = sampleName
 		self.crystalList = [] #Empty list to fill with Shape entries
 
 		#Ask user to choose if using spheres or ellipsoids
@@ -105,7 +112,7 @@ class GarnetCSD:
 			self.quickSortCrystals(low, pi-1)
 			self.quickSortCrystals(pi+1, high)
 
-	def fractionateGarnet(self, radInterval):
+	def fractionateGarnet(self, radInterval, outputDir):
 		#A method to fractionate garnet and output the composition at each radInterval
 		count = 1
 		self.growGarnetShell()
@@ -114,16 +121,25 @@ class GarnetCSD:
 			self.growGarnetShell()
 			
 			if(abs(self.garnetList[0].bigAx-radInterval*count)<self.shellThick):
-				count += 1
-				print("Biggest Radius = " + str(self.garnetList[0].bigAx))
-				print(self.garnetList[0].composition[0].endMember + ": " + str(self.garnetList[0].composition[0].molFrac))
-				print("Number of garnets: " + str(len(self.garnetList)))
-				self.calcTotalGarnetMol()
-				for i in range(len(self.totGarnetMol)):
-					print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
 				
 
-		print("One more iteration: " + str(self.crystalList[0].getDim()))
+				#print("Biggest Radius = " + str(self.garnetList[0].bigAx))
+				#print(self.garnetList[0].composition[0].endMember + ": " + str(self.garnetList[0].composition[0].molFrac))
+				#print("Number of garnets: " + str(len(self.garnetList)))
+
+				self.calcTotalGarnetMol()
+				
+				self.composition = subComponentList(self.composition, self.totGarnetMol)
+
+				self.writeScriptFiles(outputDir, count)
+
+				print(str(len(self.garnetList)) + " garnets grown")
+				#for i in range(len(self.totGarnetMol)):
+					#print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
+				count += 1
+				
+
+		print("Done growing garnets")
 
 	def growGarnetShell(self):
 		#Function to grow an additional shell of garnet
@@ -132,15 +148,12 @@ class GarnetCSD:
 		if len(self.garnetList) == 0: #Initialize first garnet
 			firstShellCompo = self.getShellCompo(self.shellThick,0)
 			self.nucleateGarnet(self.crystalList[0],firstShellCompo)
-			print("Nucleating first garnet")
+			print("First garnet nucleated")
 		else:
 			#First calculate the next composition interval
 			biggestRad = self.garnetList[0].bigAx
 			nextShellRad = biggestRad + self.shellThick
 			nextShellCompo = self.getShellCompo(nextShellRad,biggestRad)
-
-			#print("Next Shell Rad:" + str(nextShellRad))
-			#print("Next Shell " + nextShellCompo[0].endMember + ": " + str(nextShellCompo[0].molFrac))
 
 			#Grow each garnet with composition nextShellCompo and thickness of shellThick
 			for i in range(len(self.garnetList)):
@@ -151,14 +164,13 @@ class GarnetCSD:
 			if(len(self.crystalList) > len(self.garnetList)):
 				nucThresh = self.crystalList[len(self.garnetList)-1].getDim()-self.crystalList[len(self.garnetList)].getDim()
 
-				#print("Nucleation thershold: " + str(nucThresh))
 
 				#Check if the youngest garnet is big enough to justify nucleation of a new garnet
 				if self.garnetList[len(self.garnetList)-1].bigAx >= nucThresh:
 
-					#print("Smallest Garnet Radius: " + str(self.garnetList[len(self.garnetList)-1].bigAx))
-
 					self.nucleateGarnet(self.crystalList[len(self.garnetList)],nextShellCompo)
+
+
 
 	def getShellCompo(self,xHi,xLo):
 		#Gets the average composition of the profile between xHi and xLo and returns it
@@ -172,6 +184,8 @@ class GarnetCSD:
 			shellCompo.append(GarnetComponentMol(GRT_CMPNT[i],shellX))
 		return shellCompo
 
+
+
 	def nucleateGarnet(self, garnetShape,garnetCompo):
 		#Function to nucleate a new garnet with the same aspect ratio of garnet shape
 
@@ -181,6 +195,8 @@ class GarnetCSD:
 
 		nucleus = Garnet(nucleusShape, garnetCompo)
 		self.garnetList.append(nucleus)
+
+
 
 	def calcTotalGarnetMol(self):
 		#Calculate total mols of all garnet components
@@ -192,11 +208,44 @@ class GarnetCSD:
 			#Add each garnet composition to totGarnetMol
 
 			thisGarnetCompo = self.garnetList[i].getCompoAsComponentMol()
-
-	
-
 			self.totGarnetMol = addComponentList(self.totGarnetMol,thisGarnetCompo)
 			
 
-	#def writeScriptFiles(self):
+
+
+	def writeScriptFiles(self, thisDir, fracStep):
+		#Write script files for the current composition
+		#For isopleths, it uses the composition of the next biggest shell
+
+		#First get the composition of the next shell, this is what will be written into the script file
+		biggestRad = self.garnetList[0].bigAx
+		nextShellRad = biggestRad + self.shellThick
+		nextShellCompo = self.getShellCompo(nextShellRad,biggestRad)
+
+		iterName = self.name + '_Stage{:02d}'.format(fracStep)
+		#Generate the therin composition string
+		therin = ""
+		for i in range(len(self.composition)):
+			therin += self.composition[i].element.upper() + "(" + str(round(self.composition[i].mol,6)) + ")"
+
+		phaseScript(therin,P1,P2,T1,T2,iterName,thisDir,DATABASE)
+
+		#Now generate the isopleth script files
+		for i in range(len(nextShellCompo)):
+			componentName = nextShellCompo[i].endMember
+			targetCompo = nextShellCompo[i].molFrac
+			#Calculate range of mol fraction +- 10% of the target composition
+			compoStep = round_sig(targetCompo*0.05)
+			compoStart = round_sig(targetCompo - 2*compoStep)
+			compoEnd =round_sig( targetCompo + 2*compoStep)
+			isoScript(therin, P1, P2, T1, T2, iterName, thisDir, DATABASE,"GARNET", componentName,compoStart, compoEnd,compoStep)
+
+
+
+def round_sig(x, sig=3):
+   	return round(x, sig-int(math.floor(math.log10(abs(x))))-1)
+
+
+
+
 

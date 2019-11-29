@@ -19,7 +19,7 @@ class Garnet:
 		self.grtShape = crystalShape
 		
 		self.composition = grtCompo #This should be an array of GarnetComponentMol, this is the composition of this shell
-		self.density = GRT_DENSITY #Assumes same density for all (just for now I guess)
+		self.density = GRT_DENSITY/1000#Assumes same density for all (just for now I guess) convert it to g/mm^3 because blob uses mm
 
 		self.nextShell = nextGarnet #base case is None, the next garnet can have its own composition and density
 
