@@ -19,7 +19,7 @@ def phaseScript(compoLine, P1, P2, T1, T2, sample, fileLoc, database):
     writeFile.write("script." + fileName + ".txt\n")
     writeFile.write(fileName + ".plt\n" + database + "\n")
     writeFile.write("    1.0000    300    0.010000   0.1000000E-08   0.1000000E-08   0.1000000E+01 0.1000000E-03    400     400     500\n")#These values are used instead of those of theriak.ini compare to that to see what each one is
-    writeFile.write(compoLine + "\n\n\n\n\n\n")
+    writeFile.write("0    " + compoLine + "     *\n\n\n\n\n\n")
     writeFile.write("TC  "+ str(T1) + "  " + str(T2) + "\n")
     writeFile.write("P  " + str(P1) + "  " + str(P2) + "\n.\n1\n 0.0000000E+00   0.0000000E+00\n")
     writeFile.write("_"+ fileName + "_pix")
@@ -42,7 +42,7 @@ def isoScript(compoLine, P1, P2, T1, T2, sample, fileLoc, database,phase, endMem
     writeFile.write("script." + fileName + ".txt\n")
     writeFile.write(fileName + ".plt\n" + database + "\n")
     writeFile.write("    1.0000    300    0.010000   0.1000000E-08   0.1000000E-08   0.1000000E+01 0.1000000E-03    400     400     500\n")#Not sure what these numbers mean
-    writeFile.write(compoLine + "\n\n\n\n\n\n")
+    writeFile.write("0    " + compoLine + "     *\n\n\n\n\n\n")
     writeFile.write("TC  "+ str(T1) + "  " + str(T2) + "\n")
     writeFile.write("P  " + str(P1) + "  " + str(P2) + "\n")
     writeFile.write(phase + "  "+ endMem + "  1" + "  " + str(minVal) + "  " + str(maxVal) + "  " + str(interval) + "\n1\n 0.0000000E+00   0.0000000E+00\n")
@@ -64,7 +64,7 @@ def volScript(compoLine, P1, P2, T1, T2, sample, fileLoc, database,phase,minVal,
     writeFile.write("script." + fileName + ".txt\n")
     writeFile.write(fileName + ".plt\n" + database + "\n")
     writeFile.write("    1.0000    300    0.010000   0.1000000E-08   0.1000000E-08   0.1000000E+01 0.1000000E-03    400     400     500\n")#Not sure what these numbers mean
-    writeFile.write(compoLine + "\n\n\n\n\n\n")
+    writeFile.write("0    " +compoLine + "     *\n\n\n\n\n\n")
     writeFile.write("TC  "+ str(T1) + "  " + str(T2) + "\n")
     writeFile.write("P  " + str(P1) + "  " + str(P2) + "\n")
     writeFile.write(phase + "  vol%" + "  1" + "  " + str(minVal) + "  " + str(maxVal) + "  " + str(interval) + "\n1\n 0.0000000E+00   0.0000000E+00\n")

@@ -61,8 +61,8 @@ SAMPLE_COL = "Name"
 
 print('Choose the csv file for the traverse')
 #travIn = input('Enter the name and directory of the csv file for the traverse: ')
-#travIn = easygui.fileopenbox('Choose the csv file for the traverse')
-travIn = "/home/sabastien/Documents/Carleton/Probe/Central sections/Garnet_CSVs/18ZE-R-77A.csv"
+travIn = easygui.fileopenbox('Choose the csv file for the traverse')
+#travIn = "/home/sabastien/Documents/Carleton/Probe/Central sections/Garnet_CSVs/18ZE-R-77A_modified.csv"
 if travIn != None:
 	travIn = travIn.strip()
 	travIn = travIn.strip('"')
@@ -81,8 +81,8 @@ if travIn != None:
 	plt.show()
 
 	#I am going to try to make this program take a geochemical csv file like THERIN_Generator, then allow the user to select from list
-	#fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
-	fileIn = "/home/sabastien/Documents/Carleton/Geochem/Grt_bearing_geochem_Metapelites.csv"
+	fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
+	#fileIn = "/home/sabastien/Documents/Carleton/Geochem/Grt_bearing_geochem_Metapelites.csv"
 	geochemDF = pd.read_csv(fileIn)
 
 	samples = list(geochemDF[SAMPLE_COL])
@@ -115,28 +115,29 @@ if travIn != None:
 	#Okay now we can have a thing for user input
 	title = "User Input"
 	msg = "Please provide the following information"
-	fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Sample Name"]
+	fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Database Filename","Radius Interval(mm)"]
 
-	# fieldValues = easygui.multenterbox(msg,title, fieldNames)
-	# # make sure that none of the fields was left blank
-	# while 1:
- #    	if fieldValues == None: break
- #    	errmsg = ""
- #    	for i in range(len(fieldNames)):
- #      	if fieldValues[i].strip() == "":
- #        	errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
- #    	if errmsg == "": break # no problems found
- #    	fieldValues = multenterbox(errmsg, title, fieldNames, fieldValues)
+	fieldValues = easygui.multenterbox(msg,title, fieldNames)
+	# make sure that none of the fields was left blank
+	while 1:
+		if fieldValues == None: break
+		errmsg = ""
+		for i in range(len(fieldNames)):
+			if fieldValues[i].strip() == "":
+				errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+		if errmsg == "": break # no problems found
+		fieldValues = multenterbox(errmsg, title, fieldNames, fieldValues)
 	
- #    therin = fieldValues[0].strip()
- #    volume = float(fieldValues[0].strip())
- #    density = float(fieldValues[1].strip())
- #    name = fieldValues[2].strip()
-
-	therin = "SI(1.0263)AL(0.31267)FE(0.14403)MN(0.00173)MG(0.0593)CA(0.02086)NA(0.05744)K(0.07516)TI(0.01002)C(100.0)H(200.0)O(102.833865)"
-	volume = 51.562
-	density = 2.20
-	name = "18ZE-R-77A"
+	
+	volume = float(fieldValues[0].strip())
+	density = float(fieldValues[1].strip())
+	database = fieldValues[2].strip()
+	name = chosenSample
+	radInterval = float(fieldValues[3].strip())
+	#therin = "SI(1.0263)AL(0.31267)FE(0.14403)MN(0.00173)MG(0.0593)CA(0.02086)NA(0.05744)K(0.07516)TI(0.01002)C(100.0)H(200.0)O(102.833865)"
+	#volume = 51.562
+	#density = 2.75
+	#name = "18ZE-R-77A"
 
 	mass = density*volume
 
@@ -148,8 +149,7 @@ if travIn != None:
 
 	sampleCompo.calcO2(redCo2,co2,h2o)
 	composition = sampleCompo.molArray
-	for i in range(len(composition)):
-		print(composition[i].element + ": " + str(composition[i].mol))
+	
 
 	#Now a code block to parse the THERIN
 	# composition = [] #Array to append Component mols
@@ -174,16 +174,22 @@ if travIn != None:
 
 
 	#Code for selecting the blob file
-	#blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
-	blobIn = "/home/sabastien/Documents/Carleton/Blob Output/18ZE-R-77A-dat.xls.xlsx"
-	#outputDir = easygui.diropenbox("Select the directory to save output")
-	outputDir = "/home/sabastien/Documents/Carleton/Modelling/Garnet Fractionation/77A/"
+	blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
+	#blobIn = "/home/sabastien/Documents/Carleton/Blob Output/18ZE-R-77A-dat.xls.xlsx"
+	outputDir = easygui.diropenbox("Select the directory to save output")
+	#outputDir = "/home/sabastien/Documents/Carleton/Modelling/Garnet Fractionation/77A/"
+	if os.name == 'nt':#PC
+		outputDir += "\\"
+   
+	else:#Mac or linux
+		outputDir += "/"
+    
 	if blobIn != None:
 		#now make the csd
 		scannedCSD = GarnetCSD(blobIn,trav.selectedTrav,composition,volume, name)
 
-		radInterval = 0.1
-		scannedCSD.fractionateGarnet(radInterval,outputDir)
+		
+		scannedCSD.fractionateGarnet(radInterval,outputDir, database)
 	else:
 		print("No blob file chosen, ending program...")
 else:

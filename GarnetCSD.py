@@ -21,7 +21,7 @@ import math
 import copy
 
 NUM_SHELLS = 2000 #This is the number of garnet shells the biggest garnet will have 
-DATABASE = "tcsb55c2_COH"
+#DATABASE = "tcdb55c2_COHmelt.txt"
 T1 = 450
 T2 = 650
 P1 = 2000
@@ -112,7 +112,7 @@ class GarnetCSD:
 			self.quickSortCrystals(low, pi-1)
 			self.quickSortCrystals(pi+1, high)
 
-	def fractionateGarnet(self, radInterval, outputDir):
+	def fractionateGarnet(self, radInterval, outputDir, database):
 		#A method to fractionate garnet and output the composition at each radInterval
 		count = 1
 		self.growGarnetShell()
@@ -131,13 +131,16 @@ class GarnetCSD:
 				
 				self.composition = subComponentList(self.composition, self.totGarnetMol)
 
-				self.writeScriptFiles(outputDir, count)
+				self.writeScriptFiles(outputDir, count, database)
 
 				print(str(len(self.garnetList)) + " garnets grown")
 				#for i in range(len(self.totGarnetMol)):
 					#print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
 				count += 1
-				
+
+		self.calcTotalGarnetMol()		
+		self.writeScriptFiles(outputDir, count, database)
+		print(str(len(self.garnetList)) + " garnets grown")
 
 		print("Done growing garnets")
 
@@ -179,8 +182,10 @@ class GarnetCSD:
 
 		for i in range(len(self.grtProfile.interpComp)):
 			thisProfile = self.grtProfile.interpComp[i]
-			
-			shellX = (thisProfile(xHi) + thisProfile(xLo))/2
+			if(xHi <= self.crystalList[0].getDim()):
+				shellX = (thisProfile(xHi) + thisProfile(xLo))/2
+			else:
+				shellX = (thisProfile(self.crystalList[0].getDim()) + thisProfile(xLo))/2
 			shellCompo.append(GarnetComponentMol(GRT_CMPNT[i],shellX))
 		return shellCompo
 
@@ -213,13 +218,14 @@ class GarnetCSD:
 
 
 
-	def writeScriptFiles(self, thisDir, fracStep):
+	def writeScriptFiles(self, thisDir, fracStep, database):
 		#Write script files for the current composition
 		#For isopleths, it uses the composition of the next biggest shell
 
 		#First get the composition of the next shell, this is what will be written into the script file
 		biggestRad = self.garnetList[0].bigAx
 		nextShellRad = biggestRad + self.shellThick
+
 		nextShellCompo = self.getShellCompo(nextShellRad,biggestRad)
 
 		iterName = self.name + '_Stage{:02d}'.format(fracStep)
@@ -228,7 +234,7 @@ class GarnetCSD:
 		for i in range(len(self.composition)):
 			therin += self.composition[i].element.upper() + "(" + str(round(self.composition[i].mol,6)) + ")"
 
-		phaseScript(therin,P1,P2,T1,T2,iterName,thisDir,DATABASE)
+		phaseScript(therin,P1,P2,T1,T2,iterName,thisDir,database)
 
 		#Now generate the isopleth script files
 		for i in range(len(nextShellCompo)):
@@ -238,7 +244,7 @@ class GarnetCSD:
 			compoStep = round_sig(targetCompo*0.05)
 			compoStart = round_sig(targetCompo - 2*compoStep)
 			compoEnd =round_sig( targetCompo + 2*compoStep)
-			isoScript(therin, P1, P2, T1, T2, iterName, thisDir, DATABASE,"GARNET", componentName,compoStart, compoEnd,compoStep)
+			isoScript(therin, P1, P2, T1, T2, iterName, thisDir, database,"GARNET", componentName,compoStart, compoEnd,compoStep)
 
 
 
