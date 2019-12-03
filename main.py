@@ -16,53 +16,13 @@ import pandas as pd
 import re
 
 SAMPLE_COL = "Name"
-
-# testSphere = Sphere(0.5)
-# testCompo = [GarnetComponentMol(SPSS,0.25),GarnetComponentMol(PY,0.25),GarnetComponentMol(GR,0.25),GarnetComponentMol(ALM,0.25)]
-# testGarnetBase = Garnet(testSphere,testCompo)
-# #testSphere.growByDim(2)
-# print(testGarnetBase.totComposition[0].endMember + ": " + str(testGarnetBase.totComposition[0].mol))
-# biggerSphere = Sphere(2)
-# nextShellCompo = [GarnetComponentMol(SPSS,0.7),GarnetComponentMol(PY,0.1),GarnetComponentMol(GR,0.1),GarnetComponentMol(ALM,0.1)]
-# biggerGarnet = testGarnetBase.growGarnet(nextShellCompo,1.5)#Garnet(testSphere,nextShellCompo,testGarnetBase)
-# otherBigGrt = Garnet(biggerSphere,nextShellCompo,testGarnetBase)
-# print(biggerGarnet.totComposition[0].endMember+ ": " + str(biggerGarnet.totComposition[0].mol))
-# secondComponent  = biggerGarnet.getCompoAsComponentMol()
-# componentMolList = testGarnetBase.getCompoAsComponentMol()
-# bigComponent = otherBigGrt.getCompoAsComponentMol()
-
-# print("First garnet:")
-# for i in range(len(componentMolList)):
-# 	print(componentMolList[i].element + ": " + str(componentMolList[i].mol))
-
-# print("Second garnet:")
-# for i in range(len(secondComponent)):
-# 	print(secondComponent[i].element + ": " + str(secondComponent[i].mol))
-
-# print("Third Garnet:")
-# for i in range(len(bigComponent)):
-# 	print(bigComponent[i].element + ": " + str(bigComponent[i].mol))
-
-# print("Sum:")
-# #componentList = biggerGarnet.getCompoAsComponentMol()
-# componentList = addComponentList(bigComponent, secondComponent)
-# for i in range(len(componentList)):
-# 	print(componentList[i].element + ": " + str(componentList[i].mol))
-# siConc = ComponentMol(Si, 2)
-# siConc2 = ComponentMol(Si,5)
-# siConc = siConc.sumComponents(siConc2)
-# print("Si: " + str(siConc.mol))
-
-
-
-# exit()
 #Begin the actual program
 #Start by getting the traverse data:
 
 print('Choose the csv file for the traverse')
 #travIn = input('Enter the name and directory of the csv file for the traverse: ')
 travIn = easygui.fileopenbox('Choose the csv file for the traverse')
-#travIn = "/home/sabastien/Documents/Carleton/Probe/Central sections/Garnet_CSVs/18ZE-R-77A_modified.csv"
+#travIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestTrav.csv"
 if travIn != None:
 	travIn = travIn.strip()
 	travIn = travIn.strip('"')
@@ -82,7 +42,7 @@ if travIn != None:
 
 	#I am going to try to make this program take a geochemical csv file like THERIN_Generator, then allow the user to select from list
 	fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
-	#fileIn = "/home/sabastien/Documents/Carleton/Geochem/Grt_bearing_geochem_Metapelites.csv"
+	#fileIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestGeochem.csv"
 	geochemDF = pd.read_csv(fileIn)
 
 	samples = list(geochemDF[SAMPLE_COL])
@@ -105,10 +65,6 @@ if travIn != None:
 			except:
 				print("Component " + COMPONENTS[i].oxName + " not found" )
 	
-	# #Renormalize to relevent components
-	# normTot = sum(wtCompo)
-	# for i in range(len(wtCompo)):
-	# 	wtCompo[i] = wtCompo[i]/normTot*100
 
 
 
@@ -134,11 +90,12 @@ if travIn != None:
 	database = fieldValues[2].strip()
 	name = chosenSample
 	radInterval = float(fieldValues[3].strip())
-	#therin = "SI(1.0263)AL(0.31267)FE(0.14403)MN(0.00173)MG(0.0593)CA(0.02086)NA(0.05744)K(0.07516)TI(0.01002)C(100.0)H(200.0)O(102.833865)"
-	#volume = 51.562
-	#density = 2.75
-	#name = "18ZE-R-77A"
-
+	
+	# volume = 0.075
+	# density = 4.19
+	# database = "tcdb"
+	# radInterval = 0.1
+	
 	mass = density*volume
 
 	sampleCompo = SampleComp(name,wtCompo,presentCmpnts,mass)
@@ -151,33 +108,13 @@ if travIn != None:
 	composition = sampleCompo.molArray
 	
 
-	#Now a code block to parse the THERIN
-	# composition = [] #Array to append Component mols
-	# therinList = re.split('\(|\)',therin)#Should make an array in form [component, mol, component, mol....]
-	# #print(therinList)
-	# #Cycle through therinList array 2 at a time, to go from one component name to the next
-	# for i in range(0, len(therinList),2):
-	# 	#Compare to each component in COMPONENTS
-	# 	for j in range(len(COMPONENTS)):
-	# 		if therinList[i].strip().lower() == COMPONENTS[j].element.lower():
-	# 			#Convert the next entry into float and add to composition as a ComponentMol
-	# 			mol = float(therinList[i+1])
-	# 			thisComponent = ComponentMol(COMPONENTS[j], mol)
-	# 			composition.append(thisComponent)
-
-	#Okay now here we will convert the relative mol fraction into the absolute number of mols for the given rock volume and density
-	#So I have two choices, either I can prompt the user to provide wt% instead of # mols or I can go the other direction and convert the mols into wt% and then reconvert back to mols
-	#The second one sems like too much work but the first one leaves either a lot of entries to the user or something idk
-	#First one seems more straightforward
-	
-
 
 
 	#Code for selecting the blob file
 	blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
-	#blobIn = "/home/sabastien/Documents/Carleton/Blob Output/18ZE-R-77A-dat.xls.xlsx"
+	#blobIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestBlob.xlsx"
 	outputDir = easygui.diropenbox("Select the directory to save output")
-	#outputDir = "/home/sabastien/Documents/Carleton/Modelling/Garnet Fractionation/77A/"
+	#outputDir = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestOutput"
 	if os.name == 'nt':#PC
 		outputDir += "\\"
    
@@ -188,7 +125,6 @@ if travIn != None:
 		#now make the csd
 		scannedCSD = GarnetCSD(blobIn,trav.selectedTrav,composition,volume, name)
 
-		
 		scannedCSD.fractionateGarnet(radInterval,outputDir, database)
 	else:
 		print("No blob file chosen, ending program...")

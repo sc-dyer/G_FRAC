@@ -20,7 +20,7 @@ import easygui
 import math
 import copy
 
-NUM_SHELLS = 2000 #This is the number of garnet shells the biggest garnet will have 
+NUM_SHELLS = 3000 #This is the number of garnet shells the biggest garnet will have 
 #DATABASE = "tcdb55c2_COHmelt.txt"
 T1 = 450
 T2 = 650
@@ -129,18 +129,59 @@ class GarnetCSD:
 
 				self.calcTotalGarnetMol()
 				
-				self.composition = subComponentList(self.composition, self.totGarnetMol)
+				
 
 				self.writeScriptFiles(outputDir, count, database)
 
+
 				print(str(len(self.garnetList)) + " garnets grown")
-				#for i in range(len(self.totGarnetMol)):
-					#print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
+
+				# print("Volumes are:")
+				# for garn in self.garnetList:
+				# 	print(garn.totVol)
+				# print("Outer Shell:")
+				# for garn in self.garnetList:
+				# 	print(str(garn.composition[0].molFrac) + "," + str(garn.composition[1].molFrac) + "," + str(garn.composition[2].molFrac) + "," + str(garn.composition[3].molFrac))
+				
+				# print("Radius:")
+				# for garn in self.garnetList:
+				# 	print(garn.bigAx)
+				# print("Mol Sum:")
+				# for garn in self.garnetList:
+				# 	thisCompo = garn.getCompoAsComponentMol()
+				# 	compoString = ""
+				# 	for cmpnt in thisCompo:
+				# 		compoString += cmpnt.element +": " + str(cmpnt.mol) + ", "
+				# 	print(compoString)
+
+				# for i in range(len(self.totGarnetMol)):
+				# 	print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
+
 				count += 1
 
 		self.calcTotalGarnetMol()		
 		self.writeScriptFiles(outputDir, count, database)
 		print(str(len(self.garnetList)) + " garnets grown")
+
+		# print("Volumes are:")
+		# for garn in self.garnetList:
+		# 	print(garn.totVol)
+		# print("Outer Shell:")
+		# for garn in self.garnetList:
+		# 	print(str(garn.composition[0].molFrac) + "," + str(garn.composition[1].molFrac) + "," + str(garn.composition[2].molFrac) + "," + str(garn.composition[3].molFrac))
+				
+		# print("Radius:")
+		# for garn in self.garnetList:
+		# 	print(garn.bigAx)
+		# print("Mol Sum:")
+		# for garn in self.garnetList:
+		# 	thisCompo = garn.getCompoAsComponentMol()
+		# 	compoString = ""
+		# 	for cmpnt in thisCompo:
+		# 		compoString += cmpnt.element +": " + str(cmpnt.mol) + ", "
+		# 	print(compoString)
+		# for i in range(len(self.totGarnetMol)):
+		# 			print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
 
 		print("Done growing garnets")
 
@@ -227,12 +268,26 @@ class GarnetCSD:
 		nextShellRad = biggestRad + self.shellThick
 
 		nextShellCompo = self.getShellCompo(nextShellRad,biggestRad)
+		currComposition = subComponentList(self.composition, self.totGarnetMol)
+
+		# print("Total Composition:")
+		# compoString = ""
+		# for cmpnt in self.composition:
+		# 	compoString += cmpnt.element +": " + str(cmpnt.mol) + ", "
+		# print(compoString)
+		# compoString = ""
+		# print("After removal of garnet:")
+		# for cmpnt in currComposition:
+		# 	compoString += cmpnt.element +": " + str(cmpnt.mol) + ", "
+		# print(compoString)
 
 		iterName = self.name + '_Stage{:02d}'.format(fracStep)
 		#Generate the therin composition string
 		therin = ""
-		for i in range(len(self.composition)):
-			therin += self.composition[i].element.upper() + "(" + str(round(self.composition[i].mol,6)) + ")"
+		for i in range(len(currComposition)):
+			if currComposition[i].mol < 0:
+				currComposition[i].mol = 0
+			therin += currComposition[i].element.upper() + "({:7.6f})".format(currComposition[i].mol)
 
 		phaseScript(therin,P1,P2,T1,T2,iterName,thisDir,database)
 
