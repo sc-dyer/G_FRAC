@@ -22,7 +22,7 @@ SAMPLE_COL = "Name"
 print('Choose the csv file for the traverse')
 #travIn = input('Enter the name and directory of the csv file for the traverse: ')
 travIn = easygui.fileopenbox('Choose the csv file for the traverse')
-#travIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestTrav.csv"
+# travIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestTrav.csv"
 if travIn != None:
 	travIn = travIn.strip()
 	travIn = travIn.strip('"')
@@ -42,7 +42,7 @@ if travIn != None:
 
 	#I am going to try to make this program take a geochemical csv file like THERIN_Generator, then allow the user to select from list
 	fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
-	#fileIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestGeochem.csv"
+	# fileIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestGeochem.csv"
 	geochemDF = pd.read_csv(fileIn)
 
 	samples = list(geochemDF[SAMPLE_COL])
@@ -75,6 +75,7 @@ if travIn != None:
 
 	fieldValues = easygui.multenterbox(msg,title, fieldNames)
 	# make sure that none of the fields was left blank
+	# Gotta make things a little bit idiot proof
 	while 1:
 		if fieldValues == None: break
 		errmsg = ""
@@ -88,9 +89,11 @@ if travIn != None:
 	volume = float(fieldValues[0].strip())
 	density = float(fieldValues[1].strip())
 	database = fieldValues[2].strip()
-	name = chosenSample
+	
 	radInterval = float(fieldValues[3].strip())
 	
+	name = chosenSample
+
 	# volume = 0.075
 	# density = 4.19
 	# database = "tcdb"
@@ -112,9 +115,9 @@ if travIn != None:
 
 	#Code for selecting the blob file
 	blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
-	#blobIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestBlob.xlsx"
+	# blobIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestBlob.xlsx"
 	outputDir = easygui.diropenbox("Select the directory to save output")
-	#outputDir = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestOutput"
+	# outputDir = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestOutput"
 	if os.name == 'nt':#PC
 		outputDir += "\\"
    
@@ -126,6 +129,11 @@ if travIn != None:
 		scannedCSD = GarnetCSD(blobIn,trav.selectedTrav,composition,volume, name)
 
 		scannedCSD.fractionateGarnet(radInterval,outputDir, database)
+
+		interpFig = plt.figure(figsize = (12,8))
+		interpAx = interpFig.add_subplot()
+		trav.selectedTrav.plotInterpolants(interpAx,radInterval)
+		plt.show()
 	else:
 		print("No blob file chosen, ending program...")
 else:

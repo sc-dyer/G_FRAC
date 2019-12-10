@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import pandas as pd
-from GeochemConst import GRT_CMPNT
+from GeochemConst import GRT_CMPNT, ALM
 from scipy.interpolate import interp1d
 
 class CompoProfile:
@@ -96,7 +96,7 @@ class CompoProfile:
 			
 	def interpCompoAtX(self,xVal,key):
 		#Linearly interpolate the composition between to points on the model to get the exact value at an x position
-
+		#
 		count = 0
 		while count < len(self.x) and self.x[count] < xVal:
 					count += 1
@@ -123,7 +123,7 @@ class CompoProfile:
 
 	def scipyInterp(self, kindIn='linear'):
 		#Function that initializes numpy arrays for each component and interpolates the values to create continuous functions
-		#
+
 		npCmpnts = np.array([np.array(cmpnt) for cmpnt in self.cmpnts]) #Make numpy arrays for each component
 		npX = np.array(self.x)
 		self.interpComp = []
@@ -133,3 +133,46 @@ class CompoProfile:
 			self.interpComp.append(thisInterp)
 
 
+	def plotInterpolants(self, pltIn, interval=0):
+		#Plot the interpolated profile as lines
+		#Very similar to the function plotAll in Traverse.py
+		#Doing this here because I can see utility in all CompoProfiles
+		#Will display lines at each interval or non if interval is 0 or less
+
+		colours = ['green','blue','orange','red']
+		pltAlm = pltIn.twinx()
+
+		pltIn.set_xlabel("x (mm)")
+		pltIn.set_ylabel("X (Ca,Mn,Mg)")
+
+		pltAlm.set_ylabel("X (Fe)")
+		
+
+		#Plot each interpolated profile
+		for i in range(len(GRT_CMPNT)):
+			pltColour = colours[i]
+			yComp = self.interpComp[i]
+			xComp = np.array(self.x)
+			if(GRT_CMPNT[i] == ALM):
+				pltAlm.plot(xComp, yComp(xComp), color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
+			else:
+				pltIn.plot(xComp, yComp(xComp), color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
+
+		pltIn.legend(fontsize = 14, loc = 'upper left')
+		pltAlm.legend(fontsize = 14, loc = 'upper right')
+		pltIn.autoscale(False)
+
+		#Plot the vertical lines at each interval
+		if(interval >= 0):
+			numIntervals = int(max(self.x)/interval)
+			thisInterval = interval
+			#Plot horizontal line at every interval :)
+			for i in range(numIntervals):
+				
+				pltIn.plot([thisInterval,thisInterval],[-100,100],color = 'black', linestyle = "--")
+				thisInterval += interval
+			#Last plot is usually smaller than the interval
+			#So plotting htat line as well
+			if(numIntervals*interval < max(self.x)):
+				
+				pltIn.plot([max(self.x),max(self.x)],[-100,100],color = 'black', linestyle = "--")
