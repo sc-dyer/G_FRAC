@@ -55,7 +55,7 @@ Once these packages are installed you can run main.py to start the program.
 G\_AIREHT requires several input files formatted in a specific way to run. The program will prompt you for these files as it runs. Examples of these files can be found in the TestData folder.
 \begin{enumerate}
   \item \textbf{Garnet Microprobe Data} This is a csv file with five headings: x (mm),Ca,Mg,Fe,Mn. The four components should be given in molar proportion.
-  \item \textbf{Bulk Rock Geochemistry} This is a csv file with the major element geochemistry of the sample you wish to model. It can contain multiple records from different samples. The file should have the header ``Name'' and all the major oxides analyzed. Possible components are defined in ``GeochemConst.py'' and can be modified to fit your needs. Reading of headers is case sensitive so make sure you name the headers in the same style as shown in ``GeochemConst.py'' (e.g. SiO2 rather than sio2). The composition is expected to be weight \%.
+  \item \textbf{Bulk Rock Geochemistry} This is a csv file with the major element geochemistry of the sample you wish to model. It can contain multiple records from different samples. The file should have the header ``Name'' and all the major oxides analyzed. Possible components are defined in ``GeochemConst.py'' and can be modified to fit your needs. Reading of headers is case sensitive so make sure you name the headers in the same style as shown in ``GeochemConst.py'' (e.g. ``SiO2'' rather than ``sio2''). The composition is expected to be weight \%.
   \item \textbf{Blob Data} The program requires the file outputted by \href{https://www.ctlab.geo.utexas.edu/software/blob3d/}{Blob3D} after processing CT data to isolate garnets in a rock. The file will need to be converted to a xlsx file to be read by G\_AIREHT.
 \end{enumerate}
 
@@ -71,7 +71,7 @@ G\_AIREHT requires several input files formatted in a specific way to run. The p
 \item \textbf{Scanned Volume:} This is the volume of the rock in cm$^3$ that you scanned for analysis using Blob3D. If you only blobbed a subvolume, enter the subvolume instead.
 \item \textbf{Density:} This is the density of the rock you scanned in g/cm$^3$
 \item \textbf{Database Filename:} This is the filename of the database you want to use for making your phase diagrams in theriak-domino
-\item \textbf{Radius Interval:} The program will model chemical fractionation during growth of garnet for every garnet in your blob file. Every garnet grows at a very small interval and modelling the phase diagram at each interval would be overkill. This field tells the program at what radial growth increments of the biggest garnet it should create output files. If you choose 0.1mm, there will be script files for the rock composition after the biggest garnet has a 0.1mm radius, 0.2mm, 0.3mm etc until the very end. If the biggest garnet's radius is not perfectly divisible by your interval, the last set of output files will represent a smaller interval. See ``How the program works'' for more details.
+\item \textbf{Radius Interval:} The program will model chemical fractionation during growth of garnet for every garnet in your blob file. Every garnet grows at a very small interval and modelling the phase diagram at each interval would be overkill. This field tells the program at what radial growth increments of the biggest garnet it should create output files. If you choose 0.1mm, there will be script files for the rock composition after the biggest garnet has a 0.1mm radius, 0.2mm, 0.3mm etc until the very end. If the biggest garnet's radius is not perfectly divisible by your interval, the last set of output files will represent a smaller interval. See section \ref{grG} for more details.
 \end{itemize}
 \item You will be prompted for the blob file (item 3 in section \ref{input}). Navigate to the xlsx file and select it.
 \item Now select the folder where you want to save the output. I recommend using an empty folder, it will not warn you if it is overwriting older files.
@@ -79,7 +79,7 @@ G\_AIREHT requires several input files formatted in a specific way to run. The p
 \item Upon completion you will have your output files, and a plot will be displayed. This plot shows you what the profile that you used for the model looks like after transformation and interpolation. It also displays the increments that the output files were created at. Save this if you wish to keep it.
 \end{enumerate}
 \section{Output}
-For each radius increment there will be script files produced for the bulk rock composition at that increment that will output a phase diagram, and isopleths of each garnet component. The isopleths plotted have the composition of the next garnet growth shell $\pm 5\%$ and $\pm 10\%$. There will also be a domjob file with all the script files as well as a file called ``sriptlist.txt'' which is used for running these files using a bash script.
+For each radius increment there will be script files produced for the bulk rock composition at that increment. These script files will output a phase diagram, and isopleths of each garnet component. The isopleths plotted have the composition of the next garnet growth shell $\pm 5\%$ and $\pm 10\%$. There will also be a domjob file with all the script files as well as a file called ``sriptList.txt'' which is used for running these files using a bash script.
 \section{Using HPC to make phase diagrams}
 To be added later
 \section{What the model is doing}
@@ -104,7 +104,9 @@ Item 1 and 2 on that list are easy to establish. The volume is recorded in the B
 \item The length of the profile is stretched to match the radius of the biggest garnet using the equation: $f = \frac{r_b}{r_p}$ where $f$ is the scaling factor, $r_b$ is the radius of the biggest garnet and $r_p$ is the length of the profile. If $x$ is distance from the garnet core, then every $x$ value in the profile is multiplied by $f$ to rescale 
 \item The first three points of the traverse are averaged then every $x$ value in the profile is increased by $r_b-r_p$. A new point at $x=0$ is made with a composition equal to the average that was calculated
 \end{enumerate}
-Presently, method 1 is used when rescaling a profile that is longer than the biggest garnet and method 2 is used when the profile is shorter. I believe method 2 is a more appropriate than stretching because the most likely reason for a disparity between $r_b$ and $r_p$ is that the profile was not of the biggest garnet but the second or third biggest instead. In this case, it makes more sense that the typically homogeneous core is extended inward, maintaining the length scale at the rim, rather than stretching the distance between every point. If the disparity is a result of non-spherical garnets, then method 1 may be more appropriate.After the profile has been transformed, a linear interpolation is done between every point in the profile. See figure \ref{prof} for an example of the transformations and interpolations.
+Presently, method 1 is used when rescaling a profile that is longer than the biggest garnet and method 2 is used when the profile is shorter. I believe method 2 is a more appropriate than stretching because the most likely reason for a disparity between $r_b$ and $r_p$ is that the profile was not of the biggest garnet but the second or third biggest instead. In this case, it makes more sense that the typically homogeneous core is extended inward, maintaining the length scale at the rim, rather than stretching the distance between every point. If the disparity is a result of non-spherical garnets, then method 1 may be more appropriate.
+
+After the profile has been transformed, a linear interpolation is done between every point in the profile. See figure \ref{prof} for an example of the transformations and interpolations.
 
 \begin{figure}
 \centering
@@ -122,15 +124,15 @@ To calculate the total amount of mols in the system, it requires the mass of the
 n_i = zm_iM_i
 %X_i = \frac{n_i}{\sum\limits_{i=1}^kn_i}
 \end{gather*}
-Where $z$ is the number of cations in oxide $i$, $m$ is the mass of the oxide, $M$ is the molar mass of the oxide. Note that Fe3+ and Fe2+ will both be added together as Fe2+. Oxygen is recalculated assuming reduced oxides. H$_2$O is assumed to be in excess with 200mol of H and 100mol of O CO$_2$ is assumed to be reduced and in excess with 100 mol of C.
+Where $z$ is the number of cations in oxide $i$, $m$ is the mass fraction of the oxide, $M$ is the molar mass of the oxide. Note that Fe3+ and Fe2+ will both be added together as Fe2+. Oxygen is recalculated assuming reduced oxides. H$_2$O is assumed to be in excess with 200mol of H and 100mol of O CO$_2$ is assumed to be reduced and in excess with 100 mol of C.
 
-One additional parameter is hard-coded in ``GarnetCSD.py'', this is NUM\_SHELLS and can be changed as desired. It is set to 3000 by default and is used to calculated the radial growth increments ($dr$). Where $dr = \frac{r_b}{\text{NUM\_SHELLS}}$. The interpolated profile is broken up into 3000 (unless NUM\_SHELLS is changed) segments with a width of $dr$. Each segment has the average composition between the right and left side of the segment.
+One additional parameter is hard-coded in ``GarnetCSD.py'', this is \\``NUM\_SHELLS'' and can be changed as desired. It is set to 3000 by default and is used to calculated the radial growth increments ($dr$). Where $dr = \frac{r_b}{\text{NUM\_SHELLS}}$. The interpolated profile is broken up into 3000 (unless NUM\_SHELLS is changed) segments with a width of $dr$. Each segment has the average composition between the right and left side of the segment.
 
-\subsection{Growing garnet}
-Once the inital conditions are set, the garnet needs to start ``growing''. Growth occurs at a constant radial rate with one layer added at a time with a thickness of $dr$. Every garnet that has been nucleated by the program will have a layer added with the same composition. The steps taken in the algorithm are outlined below:
+\subsection{Growing garnet} \label{grG}
+Once the inital conditions are set, the garnet needs to start growing. Growth occurs at a constant radial rate, one layer at a time. Each layer with a thickness of $dr$. Every garnet that has been nucleated by the program will have a layer added with the same composition. The steps taken in the algorithm are outlined below:
 \begin{enumerate}
 \item Nucleate the first garnet with radius $r = dr$ with the composition of the first segment
-\item Add a layer of thickness $dr$ to the garnet with the composition of the next segment
+\item Add a layer with a thickness of $dr$ to the garnet with the composition of the next segment
 \item Continue adding layers, progressing through the segments of the chemical profile until the current radius of the first garnet $r_{g1}$ is equal to the difference between the final radius of the first garnet $r_{G1}$ and second garnet $r_{G2}$ (i.e. $r_{g1} = r_{G1}-r_{G2}$)
 \item Nucleate a new garnet with radius $r = dr$ with the same composition of the outermost layer of the other garnets in the system
 \item Continue growing garnets and nucleating them once $r_{gi} = r_{Gi}-r_{G(i+1)}$ where i is the smallest garnet present
@@ -148,5 +150,5 @@ n_{i,k} = \frac{X_{i,k}m_k}{\sum\limits_{j=1}^pX_{j,k}M_j}
 \end{gather*}
 Where $f_{i,k}$ is the mass fraction of component $i$ in layer $k$. The calculation of the mass of the layer $m_k$ is done with $m_k = V_k\rho_{grt}$ where $\rho_{grt}$ is the denisty of garnet defined in ``GeochemConst.py'' as 4.19g/cm$^3$. Total mols of a component in a single garnet can be easily calculated by summing the layers. Total mols of a component in all garnets can also be calculated easily by summing all the garnets.
 
-The total mols of a component in all garnet can then be removed from the bulk rock composition to determine the amount of material fractionated from the system. The program does this calculation at every radius interval defined by the user for creating the output files.
+The total mols of a component in all garnet can then be removed from the bulk rock composition to determine the amount of material fractionated from the system. The program does this calculation at every radius interval defined by the user for creating the output files. It also does it one more time before the final layer is grown.
 \end{document}
