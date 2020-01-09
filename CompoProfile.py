@@ -176,3 +176,34 @@ class CompoProfile:
 			if(numIntervals*interval < max(self.x)):
 				
 				pltIn.plot([max(self.x),max(self.x)],[-100,100],color = 'black', linestyle = "--")
+
+	def extrapCore(self, avgInterval, distance):
+		#This method assumes the left side of a CompoProfile is the core of a mineral
+		#It then averages the values across avgInterval where avgInterval is a number of cells
+		#It then extends that average to the left by distance in mm
+		#This only needs to add one cell at the beginning of each array and move all others to the right
+		#Trying this out to see if extrapolating the core is better than stretching the whole profile
+		avgCore = [0,0,0,0]
+
+		for i in range(avgInterval):
+
+			for j in range(len(GRT_CMPNT)):
+				avgCore[j] += self.cmpnts[j][i]
+
+		newCmpnt = [[],[],[],[]]
+		for i in range(len(GRT_CMPNT)):
+			avgCore[i] /= avgInterval
+			newCmpnt[i].append(avgCore[i])
+
+		newX = [0]
+		
+		#Need to move every cell over to the right
+		#Setting the first cell as 0 always
+		for i in range(len(self.x)):
+			newX.append(self.x[i]+distance)
+			for j in range(len(GRT_CMPNT)):
+				newCmpnt[j].append(self.cmpnts[j][i])
+
+		self.x = newX
+		self.cmpnts = newCmpnt
+

@@ -27,6 +27,7 @@ T2 = 650
 P1 = 2000
 P2 = 10000
 
+CORE_AVG_INDEX = 3 #Number of cells to average for the core composition
 class GarnetCSD:
 
 	def __init__(self,blobFileName,garnetProfile,rockCompo, rockVolume, sampleName):
@@ -39,46 +40,68 @@ class GarnetCSD:
 		self.name = sampleName
 		self.crystalList = [] #Empty list to fill with Shape entries
 
+		blobDF = blobDF.dropna() #Sometimes empty rows at the end mess up calculations
+			
 		#Ask user to choose if using spheres or ellipsoids
 		msg = "Are garnets spheres or ellipsoids?"
 		title = ""
 		choices = ["Sphere","Ellipsoid"]
-		#reply = easygui.buttonbox(msg,title,choices)
-		reply = "Sphere" #Only works for Spheres right now, need to think about size independent growth of ellipsoids
+		reply = easygui.buttonbox(msg,title,choices)
+		#reply = "Sphere" #Only works for Spheres right now, need to think about size independent growth of ellipsoids
 		if(reply==choices[0]):
 			volume = list(blobDF['Volume (mm^3)'])
 
 			for i in range(len(volume)):
 				#If spheres, it will recalculate the radius from the volume
-				if not math.isnan(volume[i]):
-					thisRad = (volume[i]*3/(4*math.pi))**(1./3)
-					self.crystalList.append(Sphere(thisRad))
+				#if not math.isnan(volume[i]):
+				thisRad = (volume[i]*3/(4*math.pi))**(1./3)
+				self.crystalList.append(Sphere(thisRad))
 
 		elif(reply == choices[1]):
 			#If ellipsoid it uses the PEllipsoid data
-			#It should be that rad1 > rad2 > rad3
-			rad1 = list(blobDF['PEllipsoid Rad1 (mm)'])
-			rad2 = list(blobDF['PEllipsoid Rad2 (mm)'])
-			rad3 = list(blobDF['PEllipsoid Rad3 (mm)'])
+			# #It should be that rad1 > rad2 > rad3
+			# rad1 = list(blobDF['PEllipsoid Rad1 (mm)'])
+			# rad2 = list(blobDF['PEllipsoid Rad2 (mm)'])
+			# rad3 = list(blobDF['PEllipsoid Rad3 (mm)'])
+			
+			# for i in range(len(rad1)):
+			# 	if not math.isnan(rad1[i]):
+			# 		self.crystalList.append(Ellipsoid(rad1[i],rad2[i],rad3[i]))
 
-			for i in range(len(rad1)):
-				if not math.isnan(rad1[i]):
-					self.crystalList.append(Ellipsoid(rad1[i],rad2[i],rad3[i]))
+			#Average out the ratios so all ellipsoids are the same shape and grow with the same dimensions
+			avgEllipsoid = self.getAvgEllipsoid(blobDF)
+			volume = list(blobDF['Volume (mm^3)'])
+
+			for i in range(len(volume)):
+				#Need to rescale the avg ellipsoid to fit the volume of each garnet
+				#if not math.isnan(volume[i]):
+				ratioAB = avgEllipsoid.aAx/avgEllipsoid.bAx
+				ratioBC = avgEllipsoid.bAx/avgEllipsoid.cAx
+				thisA = ((3*ratioAB**2*ratioBC*volume[i])/(math.pi*4))**(1/3)
+				thisB = thisA/ratioAB
+				thisC = thisB/ratioBC
+					
+				self.crystalList.append(Ellipsoid(thisA,thisB,thisC))
 		else:
 			print("Error: No option chosen")
 			return
 
 		#Okay now we need to stretch the garnet profile to fit with the long dimension of the ellipsoid or the radius of the sphere
-		
-		
+		#This is so the profile matches up with the biggest garnet
+
 		self.quickSortCrystals(0,len(self.crystalList)-1)
 		travRad = max(self.grtProfile.x) #Radius of the garnet measured in the microprobe profile
-		scaleFactor = self.crystalList[0].getDim()/travRad #The scaling factor to convert the x values in grtProfile to be the same size as the radius or a axis of ellipsoid
-
-		self.shellThick = self.crystalList[0].getDim()/NUM_SHELLS #Thickness of each shell
-		for i in range(len(self.grtProfile.x)): 
-			#Rescale x
-			self.grtProfile.x[i] = scaleFactor*self.grtProfile.x[i]
+		self.shellThick = self.crystalList[0].getDim()/NUM_SHELLS 
+		#Instead of stretching, lets try extrapolating the core inwards:
+		radAdd = self.crystalList[0].getDim() - travRad
+		if radAdd > 0: #In case the biggest garnet has a radius smaller than traverse length
+			self.grtProfile.extrapCore(CORE_AVG_INDEX, radAdd)
+		else: 
+			scaleFactor = self.crystalList[0].getDim()/travRad #The scaling factor to convert the x values in grtProfile to be the same size as the radius or a axis of ellipsoid
+			
+			for i in range(len(self.grtProfile.x)): 
+				#Rescale x
+				self.grtProfile.x[i] = scaleFactor*self.grtProfile.x[i]
 
 		self.grtProfile.scipyInterp() #Initialize the interpolated numpy arrays
 
@@ -206,6 +229,8 @@ class GarnetCSD:
 
 			#Check if new garnet needs to be nucleated
 			if(len(self.crystalList) > len(self.garnetList)):
+				#Nucleation threshold is the difference in radius between the last garnet and the next garnet
+				#For ellipsoids, uses the a-axis
 				nucThresh = self.crystalList[len(self.garnetList)-1].getDim()-self.crystalList[len(self.garnetList)].getDim()
 
 
@@ -300,6 +325,32 @@ class GarnetCSD:
 			compoStart = round_sig(targetCompo - 2*compoStep)
 			compoEnd =round_sig( targetCompo + 2*compoStep)
 			isoScript(therin, P1, P2, T1, T2, iterName, thisDir, database,"GARNET", componentName,compoStart, compoEnd,compoStep)
+
+	def getAvgEllipsoid(self, blobIn):
+		#Takes the blobIn as a pandas table
+		#Average the aspect ratios of all the ellipsoids and returns the average ellipsoid
+		#This way we can work with a "standardized" ellipsoid that grows the same way for every garnet
+		rad1 = blobIn['PEllipsoid Rad1 (mm)'].to_numpy()
+		rad2 = blobIn['PEllipsoid Rad2 (mm)'].to_numpy()
+		rad3 = blobIn['PEllipsoid Rad3 (mm)'].to_numpy()
+
+		#ratio12 = rad1/rad2 ratio23 = rad2/rad3 ratio12*ratio23 = rad1/rad3
+		ratio12 = rad1/rad2
+		ratio23 = rad2/rad3
+
+		avgR12 = np.average(ratio12)
+		avgR23 = np.average(ratio23)
+
+		#Volume of ellipsoid doesnt matter so set rad3 = 1
+		modelR2 = avgR23
+		modelR1 = avgR12*modelR2
+		modelEllip = Ellipsoid(modelR1,modelR2,1)
+
+		return modelEllip
+
+
+
+		
 
 
 

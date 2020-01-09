@@ -63,7 +63,7 @@ if travIn != None:
 				wtCompo.append(float(selectedRow[COMPONENTS[i].oxName]))
 				presentCmpnts.append(COMPONENTS[i])
 			except:
-				print("Component " + COMPONENTS[i].oxName + " not found" )
+				print("Component " + COMPONENTS[i].oxName + " not present in file" )
 	
 
 
@@ -71,7 +71,7 @@ if travIn != None:
 	#Okay now we can have a thing for user input
 	title = "User Input"
 	msg = "Please provide the following information"
-	fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Database Filename","Radius Interval(mm)"]
+	fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Database Filename","Radius Interval (mm)"]
 
 	fieldValues = easygui.multenterbox(msg,title, fieldNames)
 	# make sure that none of the fields was left blank

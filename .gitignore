@@ -103,4 +103,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-TestData/
+TestData/TestOutput*
+TestData/TestCalc.ods
+TestData/.*
+
+UserGuide/*.png
+UserGuide/*.svg
+UserGuide/*.tex~
