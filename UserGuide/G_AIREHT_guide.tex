@@ -129,7 +129,7 @@ Where $z$ is the number of cations in oxide $i$, $m$ is the mass fraction of the
 One additional parameter is hard-coded in ``GarnetCSD.py'', this is \\``NUM\_SHELLS'' and can be changed as desired. It is set to 3000 by default and is used to calculated the radial growth increments ($dr$). Where $dr = \frac{r_b}{\text{NUM\_SHELLS}}$. The interpolated profile is broken up into 3000 (unless NUM\_SHELLS is changed) segments with a width of $dr$. Each segment has the average composition between the right and left side of the segment.
 
 \subsection{Growing garnet} \label{grG}
-Once the inital conditions are set, the garnet needs to start growing. Growth occurs at a constant radial rate, one layer at a time. Each layer with a thickness of $dr$. Every garnet that has been nucleated by the program will have a layer added with the same composition. The steps taken in the algorithm are outlined below:
+Once the inital conditions are set, the garnet needs to start growing. Growth occurs at a constant radial rate, one layer at a time. Each layer with a thickness of $dr$. Every garnet that has been nucleated by the program will have a layer added with the same composition. The steps taken in the algorithm are outlined below and illustrated with figure \ref{model}:
 \begin{enumerate}
 \item Nucleate the first garnet with radius $r = dr$ with the composition of the first segment
 \item Add a layer with a thickness of $dr$ to the garnet with the composition of the next segment
@@ -138,7 +138,12 @@ Once the inital conditions are set, the garnet needs to start growing. Growth oc
 \item Continue growing garnets and nucleating them once $r_{gi} = r_{Gi}-r_{G(i+1)}$ where i is the smallest garnet present
 \item Stop growth once $r_{g1} = r_{G1}$ 
 \end{enumerate} 
-
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{"Model Illustration".png}
+\label{model}
+\caption{Steps of garnet growth with numbers corresponding to the numerical list in section \ref{grG}}
+\end{figure}
 During this growth period, the program is not actually changing the bulk rock composition. It is simply adding layers to garnets, according to the composition defined by the corresponding segment of the chemical profile. It is however keeping track of the total moles of each component that is being added to garnet. For calculating the amount of mols for component $i$ of $p$ in layer $k$, $n_{i,k}$ is derived as follows:
 \begin{gather*}
 n_{i,k} = \frac{m_{i,k}}{M_i}\\
