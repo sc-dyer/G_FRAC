@@ -3,12 +3,14 @@
 #By for now I mean forever
 from GarnetComponent import GarnetComponent
 from ComponentMol import *
+import copy
 
 class GarnetComponentMol(GarnetComponent):
 
 	def __init__(self,grtIn, xIn=0, molIn=0):
 		#Takes all properties from grtIn and assigns an amount of mols and a mol fraction
-		super().__init__(grtIn.cation,grtIn.endMember,grtIn.formula)
+		grtCopy = copy.deepcopy(grtIn)
+		super().__init__(grtCopy.cation,grtCopy.endMember,grtCopy.formula)
 		self.molFrac = xIn #This should add to 1 with the other garnet components
 		self.mol = molIn
 

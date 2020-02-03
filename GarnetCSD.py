@@ -20,7 +20,7 @@ import easygui
 import math
 import copy
 
-NUM_SHELLS = 3000 #This is the number of garnet shells the biggest garnet will have 
+NUM_SHELLS = 2000 #This is the number of garnet shells the biggest garnet will have 
 #DATABASE = "tcdb55c2_COHmelt.txt"
 T1 = 450
 T2 = 650
@@ -137,8 +137,19 @@ class GarnetCSD:
 
 	def fractionateGarnet(self, radInterval, outputDir, database):
 		#A method to fractionate garnet and output the composition at each radInterval
+		
+
+		currComposition = self.composition
+		therin = ""
+		for i in range(len(currComposition)):
+			if currComposition[i].mol < 0:
+				currComposition[i].mol = 0
+			therin += currComposition[i].element.upper() + "({:7.6f})".format(currComposition[i].mol)
+		print("Initial composition: " + therin)
+
 		count = 1
 		self.growGarnetShell()
+		garnetPlotList = [0]
 		while(self.garnetList[0].bigAx < self.crystalList[0].getDim()-self.shellThick):
 			#Grow garnet until the biggest garnet is one shell away from its max size
 			self.growGarnetShell()
@@ -156,9 +167,18 @@ class GarnetCSD:
 
 				self.writeScriptFiles(outputDir, count, database)
 
-
+				print("Stage" + str(count) + ":")
 				print(str(len(self.garnetList)) + " garnets grown")
-
+				print("Largest radius: " + str(self.garnetList[0].bigAx) + "mm")
+				print("Total garnet volume: " + str(self.calcTotVol()) + "mm^3")
+				if garnetPlotList[len(garnetPlotList)-1] != len(self.garnetList) - 1:
+					grtIndex = len(self.garnetList)-1
+					
+					garnetPlotList.append(grtIndex) #To plot these guys later
+					
+				# for num in garnetPlotList:
+				# 	self.plotGarnet(num)
+				# plt.show()
 				# print("Volumes are:")
 				# for garn in self.garnetList:
 				# 	print(garn.totVol)
@@ -184,7 +204,10 @@ class GarnetCSD:
 
 		self.calcTotalGarnetMol()		
 		self.writeScriptFiles(outputDir, count, database)
+		print("Stage" + str(count) + ":")
 		print(str(len(self.garnetList)) + " garnets grown")
+		print("Largest radius: " + str(self.garnetList[0].bigAx) + "mm")
+		print("Total garnet volume: " + str(self.calcTotVol()) + "mm^3")
 
 		# print("Volumes are:")
 		# for garn in self.garnetList:
@@ -206,7 +229,12 @@ class GarnetCSD:
 		# for i in range(len(self.totGarnetMol)):
 		# 			print("Total mol of " + self.totGarnetMol[i].element + " = " + str(self.totGarnetMol[i].mol))
 
+
 		print("Done growing garnets")
+
+		for num in garnetPlotList:
+			self.plotGarnet(num)
+		
 
 	def growGarnetShell(self):
 		#Function to grow an additional shell of garnet
@@ -272,7 +300,7 @@ class GarnetCSD:
 	def calcTotalGarnetMol(self):
 		#Calculate total mols of all garnet components
 		#This will return an array of ComponentMol not GarnetComponentMol
-		self.totGarnetMol = self.garnetList[0].getCompoAsComponentMol() #Get the composition of the first garnet
+		self.totGarnetMol = copy.deepcopy(self.garnetList[0].getCompoAsComponentMol()) #Get the composition of the first garnet
 
 
 		for i in range(1,len(self.garnetList)):
@@ -349,8 +377,97 @@ class GarnetCSD:
 		return modelEllip
 
 
+	def plotGarnet(self, grtNum):
+		#Plots an individual garnet composition
+		#Will plot mol fraction (fracAx), mols (molAx), and volume (volAx)
+		#Wont show the plot right away so that multiple garnets can be shown at the same time
 
-		
+		thisGrt = self.garnetList[grtNum]
+		thisCompo = thisGrt.getProfileComp()
+		thisX = thisGrt.getProfileX() 
+		thisVol = thisGrt.getProfileVol()
+
+		if len(thisX) == len(thisCompo): #verify these operations were performed correctly when retrieving the values
+			fracList =[]
+			molList = []
+			for elem in GRT_CMPNT:
+				fracList.append([])
+				molList.append([])
+			for i in range (len(thisCompo)):
+				
+			
+				for j in range(len(thisCompo[i])):
+
+						fracList[j].append(thisCompo[i][j].molFrac)
+						molList[j].append(thisCompo[i][j].mol)
+				
+			thisFig =plt.figure(figsize =(16,10))
+			
+			thisFig.suptitle("Garnet " + str(grtNum+1), fontsize=16)
+
+			fracAx = thisFig.add_subplot(311)
+			colours = ['green','blue','orange','red']
+
+			#Set xlimit of every plot to the size of the biggest garnet, so it is easier to compare
+			biggestRad = self.garnetList[0].bigAx	
+			fracAx.set_xlim(0,biggestRad)
+
+			fracAlm = fracAx.twinx()
+
+			fracAx.set_xlabel("x (mm)")
+			fracAx.set_ylabel("X (Ca,Mn,Mg)")
+
+			fracAlm.set_ylabel("X (Fe)")
+			
+			molAx = thisFig.add_subplot(312)
+			molAx.set_xlim(0,biggestRad)
+			molAlm = molAx.twinx()
+
+			molAx.set_xlabel("x (mm)")
+			molAx.set_ylabel("mol (Ca,Mn,Mg)")
+			molAlm.set_ylabel("mol (Fe)")
+
+			volAx = thisFig.add_subplot(313)
+			volAx.set_xlim(0,biggestRad)
+			volAx.set_xlabel("x (mm)")
+			volAx.set_ylabel("Shell Volume (mm$^3$)")
+
+
+			#Plot each interpolated profile
+			for i in range(len(GRT_CMPNT)):
+				pltColour = colours[i]
+				yFrac = fracList[i]
+				yMol = molList[i]
+				xComp = thisX
+				if(GRT_CMPNT[i] == ALM):
+					fracAlm.plot(xComp, yFrac, color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
+					molAlm.plot(xComp, yMol, color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
+				else:
+					fracAx.plot(xComp, yFrac, color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
+					molAx.plot(xComp, yMol, color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
+
+			volAx.plot(thisX, thisVol, color = 'black', marker = 'None', linestyle = '-', markersize = 7, linewidth = 1, label = "Volume")
+
+			fracAx.legend(fontsize = 14, loc = 'upper left')
+			fracAlm.legend(fontsize = 14, loc = 'upper right')
+			molAx.legend(fontsize = 14, loc = 'upper left')
+			molAlm.legend(fontsize = 14, loc = 'upper right')
+			
+			
+			thisFig.show()
+
+
+		else:
+			print("Error with plotting garnet compositions")
+
+	def calcTotVol(self):
+		#Returns the total volume of garnet so far
+
+		totVolCSD = 0
+		for grt in self.garnetList:
+			totVolCSD += grt.totVol
+
+		return totVolCSD
 
 
 

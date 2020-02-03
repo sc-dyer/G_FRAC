@@ -18,7 +18,8 @@ class Garnet:
 	def __init__(self,crystalShape,grtCompo,nextGarnet=None):
 		self.grtShape = crystalShape
 		
-		self.composition = grtCompo #This should be an array of GarnetComponentMol, this is the composition of this shell
+		self.composition = copy.deepcopy(grtCompo) #This should be an array of GarnetComponentMol, this is the composition of this shell
+
 		self.density = GRT_DENSITY/1000#Assumes same density for all (just for now I guess) convert it to g/mm^3 because blob uses mm
 
 		self.nextShell = nextGarnet #base case is None, the next garnet can have its own composition and density
@@ -97,5 +98,42 @@ class Garnet:
 
 			molList = addComponentList(molList,thisMolList)
 		return molList
+
+
+	def getProfileComp(self):
+		#This will return the compositional profile of the garnet as a 2D list of GarnetComponentMol
+		if(self.nextShell == None):
+			#Define basecase
+			compProfile = []
+			
+		else:
+			compProfile = self.nextShell.getProfileComp()
+			
+		compProfile.append(self.composition)
+		return compProfile
+
+	def getProfileX(self):
+		#Returns a list of x-values for plotting the profile
+		if(self.nextShell == None):
+			#Define basecase
+			xProfile = []
+			
+		else:
+			xProfile = self.nextShell.getProfileX()
+			
+		xProfile.append(self.bigAx)
+		return xProfile
+
+	def getProfileVol(self):
+		#Does the same as the ones above but returns the shell volume as an array
+		if(self.nextShell == None):
+			#Define basecase
+			volProfile = []
+			
+		else:
+			volProfile = self.nextShell.getProfileVol()
+			
+		volProfile.append(self.shellVol)
+		return volProfile
 
 

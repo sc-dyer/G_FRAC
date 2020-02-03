@@ -6,7 +6,8 @@ class ComponentMol(Component):
 
 	def __init__(self, componentIn, molIn=0):
 		#Initialize the super using the parameters of componentIn
-		super().__init__(componentIn.element, componentIn.weight, componentIn.ox2cat, componentIn.catNum, componentIn.oxName)
+		componentCopy = copy.deepcopy(componentIn)
+		super().__init__(componentCopy.element, componentCopy.weight, componentCopy.ox2cat, componentCopy.catNum, componentCopy.oxName)
 		
 		self.mol = molIn
 		

@@ -1,5 +1,5 @@
 from Garnet import Garnet
-from GarnetCSD import GarnetCSD
+from GarnetCSD import GarnetCSD,NUM_SHELLS
 from Sphere import Sphere
 from Ellipsoid import Ellipsoid
 from GeochemConst import *
@@ -14,7 +14,10 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
+import sys
 
+sys.setrecursionlimit(NUM_SHELLS*3)
+#print(sys.getrecursionlimit())
 SAMPLE_COL = "Name"
 #Begin the actual program
 #Start by getting the traverse data:
@@ -22,7 +25,7 @@ SAMPLE_COL = "Name"
 print('Choose the csv file for the traverse')
 #travIn = input('Enter the name and directory of the csv file for the traverse: ')
 travIn = easygui.fileopenbox('Choose the csv file for the traverse')
-# travIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestTrav.csv"
+# travIn = "./TestData/TestTrav.csv"
 if travIn != None:
 	travIn = travIn.strip()
 	travIn = travIn.strip('"')
@@ -42,7 +45,7 @@ if travIn != None:
 
 	#I am going to try to make this program take a geochemical csv file like THERIN_Generator, then allow the user to select from list
 	fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
-	# fileIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestGeochem.csv"
+	# fileIn = "./TestData/TestGeochem.csv"
 	geochemDF = pd.read_csv(fileIn)
 
 	samples = list(geochemDF[SAMPLE_COL])
@@ -98,7 +101,6 @@ if travIn != None:
 	# density = 4.19
 	# database = "tcdb"
 	# radInterval = 0.1
-	
 	mass = density*volume
 
 	sampleCompo = SampleComp(name,wtCompo,presentCmpnts,mass)
@@ -115,9 +117,9 @@ if travIn != None:
 
 	#Code for selecting the blob file
 	blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
-	# blobIn = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestBlob.xlsx"
+	# blobIn = "./TestData/TestBlob.xlsx"
 	outputDir = easygui.diropenbox("Select the directory to save output")
-	# outputDir = "/home/sabastien/Documents/Carleton/Python_Programs/Garnet_Fractionate/TestData/TestOutput"
+	# outputDir = "./TestData/TestOutputC"
 	if os.name == 'nt':#PC
 		outputDir += "\\"
    
