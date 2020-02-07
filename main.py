@@ -16,6 +16,7 @@ import pandas as pd
 import re
 import sys
 
+isDebug = False
 sys.setrecursionlimit(NUM_SHELLS*3)
 #print(sys.getrecursionlimit())
 SAMPLE_COL = "Name"
@@ -24,8 +25,11 @@ SAMPLE_COL = "Name"
 
 print('Choose the csv file for the traverse')
 #travIn = input('Enter the name and directory of the csv file for the traverse: ')
-travIn = easygui.fileopenbox('Choose the csv file for the traverse')
-# travIn = "./TestData/TestTrav.csv"
+if isDebug:
+	travIn = "./TestData/TestTrav.csv"
+else:
+	travIn = easygui.fileopenbox('Choose the csv file for the traverse')
+
 if travIn != None:
 	travIn = travIn.strip()
 	travIn = travIn.strip('"')
@@ -44,8 +48,11 @@ if travIn != None:
 	plt.show()
 
 	#I am going to try to make this program take a geochemical csv file like THERIN_Generator, then allow the user to select from list
-	fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
-	# fileIn = "./TestData/TestGeochem.csv"
+	if isDebug:
+		fileIn = "./TestData/TestGeochem.csv"
+	else:
+		fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
+	
 	geochemDF = pd.read_csv(fileIn)
 
 	samples = list(geochemDF[SAMPLE_COL])
@@ -72,35 +79,39 @@ if travIn != None:
 
 
 	#Okay now we can have a thing for user input
-	title = "User Input"
-	msg = "Please provide the following information"
-	fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Database Filename","Radius Interval (mm)"]
+	if isDebug:
+		volume = 0.075
+		density = 4.19
+		database = "tcdb"
+		radInterval = 0.1
+	else:
+		title = "User Input"
+		msg = "Please provide the following information"
+		fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Database Filename","Radius Interval (mm)"]
 
-	fieldValues = easygui.multenterbox(msg,title, fieldNames)
-	# make sure that none of the fields was left blank
-	# Gotta make things a little bit idiot proof
-	while 1:
-		if fieldValues == None: break
-		errmsg = ""
-		for i in range(len(fieldNames)):
-			if fieldValues[i].strip() == "":
-				errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
-		if errmsg == "": break # no problems found
-		fieldValues = multenterbox(errmsg, title, fieldNames, fieldValues)
+		fieldValues = easygui.multenterbox(msg,title, fieldNames)
+		# make sure that none of the fields was left blank
+		# Gotta make things a little bit idiot proof
+		while 1:
+			if fieldValues == None: break
+			errmsg = ""
+			for i in range(len(fieldNames)):
+				if fieldValues[i].strip() == "":
+					errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+			if errmsg == "": break # no problems found
+			fieldValues = multenterbox(errmsg, title, fieldNames, fieldValues)
+		
 	
 	
-	volume = float(fieldValues[0].strip())
-	density = float(fieldValues[1].strip())
-	database = fieldValues[2].strip()
+		volume = float(fieldValues[0].strip())
+		density = float(fieldValues[1].strip())
+		database = fieldValues[2].strip()
 	
-	radInterval = float(fieldValues[3].strip())
+		radInterval = float(fieldValues[3].strip())
 	
 	name = chosenSample
 
-	# volume = 0.075
-	# density = 4.19
-	# database = "tcdb"
-	# radInterval = 0.1
+	
 	mass = density*volume
 
 	sampleCompo = SampleComp(name,wtCompo,presentCmpnts,mass)
@@ -116,10 +127,12 @@ if travIn != None:
 
 
 	#Code for selecting the blob file
-	blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
-	# blobIn = "./TestData/TestBlob.xlsx"
-	outputDir = easygui.diropenbox("Select the directory to save output")
-	# outputDir = "./TestData/TestOutputC"
+	if isDebug:
+		blobIn = "./TestData/TestBlob.xlsx"
+		outputDir = "./TestData/TestOutputC"
+	else:
+		blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
+		outputDir = easygui.diropenbox("Select the directory to save output")
 	if os.name == 'nt':#PC
 		outputDir += "\\"
    
@@ -135,7 +148,9 @@ if travIn != None:
 		interpFig = plt.figure(figsize = (12,8))
 		interpAx = interpFig.add_subplot()
 		trav.selectedTrav.plotInterpolants(interpAx,radInterval)
+		interpFig.savefig(outputDir + "OriginalTrav.svg")
 		plt.show()
+
 	else:
 		print("No blob file chosen, ending program...")
 else:
