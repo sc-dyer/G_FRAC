@@ -5,7 +5,7 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{subfigure}
-\title{G\_AIREHT User Guide}
+\title{G\_FRAC User Guide}
 
 \hypersetup{
     colorlinks=true,
@@ -18,7 +18,7 @@
 \begin{document}
 \maketitle
 \section{Introduction}
-This document provides the steps for running G\_AIREHT and how to quickly processes the output on the Compute Canada network of supercomputers. Here are some useful links for getting started with Compute Canada:
+This document provides the steps for running G\_FRAC and how to quickly processes the output on the Compute Canada network of supercomputers. Here are some useful links for getting started with Compute Canada:
 \begin{itemize}
   \item[--] \href{https://www.computecanada.ca/research-portal/account-management/apply-for-an-account/}{Creating an account}
   \item[--] \href{https://docs.computecanada.ca/wiki/Compute_Canada_Documentation}{Documentation}
@@ -27,13 +27,13 @@ This document provides the steps for running G\_AIREHT and how to quickly proces
   \item[--] \href{https://docs.computecanada.ca/wiki/Globus}{How to transfer files}
   %\item[--] \href
 \end{itemize}
-G\_AIREHT uses Python3. If you are new to python, a good place to get started is with \href{https://pyzo.org/}{Pyzo}. Some other helpful links for getting started with Python:
+G\_FRAC uses Python3. If you are new to python, a good place to get started is with \href{https://pyzo.org/}{Pyzo}. Some other helpful links for getting started with Python:
 \begin{itemize}
 \item[--] \href{https://www.python.org/}{The Python homepage}
 \item[--] \href{https://wiki.python.org/moin/BeginnersGuide/Download}{Official Python guide for getting started}
 \item[--] \href{https://www.anaconda.com/distribution/}{Anaconda} is a package manager dedicated to data science
 \end{itemize}
-\section{Setting up G\_AIREHT}
+\section{Setting up G\_FRAC}
 Once you have Python3 you will need to install the required packages. Depending on how you are running python, the command to do this might be different. Typically it is 
 \begin{verbatim}
 pip install package-name
@@ -52,11 +52,11 @@ But it can also be ``pip3 install'' if your system has python2 on it as well. If
 Once these packages are installed you can run main.py to start the program.
 
 \section{Input files}\label{input}
-G\_AIREHT requires several input files formatted in a specific way to run. The program will prompt you for these files as it runs. Examples of these files can be found in the TestData folder.
+G\_FRAC requires several input files formatted in a specific way to run. The program will prompt you for these files as it runs. Examples of these files can be found in the TestData folder.
 \begin{enumerate}
   \item \textbf{Garnet Microprobe Data} This is a csv file with five headings: x (mm),Ca,Mg,Fe,Mn. The four components should be given in molar proportion.
   \item \textbf{Bulk Rock Geochemistry} This is a csv file with the major element geochemistry of the sample you wish to model. It can contain multiple records from different samples. The file should have the header ``Name'' and all the major oxides analyzed. Possible components are defined in ``GeochemConst.py'' and can be modified to fit your needs. Reading of headers is case sensitive so make sure you name the headers in the same style as shown in ``GeochemConst.py'' (e.g. ``SiO2'' rather than ``sio2''). The composition is expected to be weight \%.
-  \item \textbf{Blob Data} The program requires the file outputted by \href{https://www.ctlab.geo.utexas.edu/software/blob3d/}{Blob3D} after processing CT data to isolate garnets in a rock. The file will need to be converted to a xlsx file to be read by G\_AIREHT.
+  \item \textbf{Blob Data} The program requires the file outputted by \href{https://www.ctlab.geo.utexas.edu/software/blob3d/}{Blob3D} after processing CT data to isolate garnets in a rock. The file will need to be converted to a xlsx file to be read by G\_FRAC.
 \end{enumerate}
 
 \section{Running the program} \label{run}

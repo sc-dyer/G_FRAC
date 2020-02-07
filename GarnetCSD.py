@@ -20,7 +20,7 @@ import easygui
 import math
 import copy
 
-NUM_SHELLS = 2000 #This is the number of garnet shells the biggest garnet will have 
+NUM_SHELLS = 4000 #This is the number of garnet shells the biggest garnet will have 
 #DATABASE = "tcdb55c2_COHmelt.txt"
 T1 = 450
 T2 = 650
@@ -146,6 +146,7 @@ class GarnetCSD:
 				currComposition[i].mol = 0
 			therin += currComposition[i].element.upper() + "({:7.6f})".format(currComposition[i].mol)
 		print("Initial composition: " + therin)
+		self.writeScriptFiles(outputDir, 0, database)
 
 		count = 1
 		self.growGarnetShell()
@@ -242,7 +243,7 @@ class GarnetCSD:
 
 		if len(self.garnetList) == 0: #Initialize first garnet
 			firstShellCompo = self.getShellCompo(self.shellThick,0)
-			self.nucleateGarnet(self.crystalList[0],firstShellCompo)
+			self.nucleateGarnet(self.crystalList[0],firstShellCompo,self.shellThick)
 			print("First garnet nucleated")
 		else:
 			#First calculate the next composition interval
@@ -263,9 +264,9 @@ class GarnetCSD:
 
 
 				#Check if the youngest garnet is big enough to justify nucleation of a new garnet
-				if self.garnetList[len(self.garnetList)-1].bigAx >= nucThresh:
-
-					self.nucleateGarnet(self.crystalList[len(self.garnetList)],nextShellCompo)
+				nucSize = self.garnetList[len(self.garnetList)-1].bigAx - nucThresh
+				if nucSize > 0:
+					self.nucleateGarnet(self.crystalList[len(self.garnetList)],nextShellCompo, nucSize)
 
 
 
@@ -285,10 +286,10 @@ class GarnetCSD:
 
 
 
-	def nucleateGarnet(self, garnetShape,garnetCompo):
+	def nucleateGarnet(self, garnetShape,garnetCompo,firstThick):
 		#Function to nucleate a new garnet with the same aspect ratio of garnet shape
 
-		rescaleFactor = garnetShape.getDim()/self.shellThick #Determines the scaling factor required to maintain the aspect ratio of a garnet with dimension of shell thickness
+		rescaleFactor = garnetShape.getDim()/firstThick #Determines the scaling factor required to maintain the aspect ratio of a garnet with dimension of shell thickness
 
 		nucleusShape = garnetShape.getRescale(rescaleFactor)
 
@@ -317,11 +318,16 @@ class GarnetCSD:
 		#For isopleths, it uses the composition of the next biggest shell
 
 		#First get the composition of the next shell, this is what will be written into the script file
-		biggestRad = self.garnetList[0].bigAx
+		if len(self.garnetList) == 0: 
+			biggestRad = 0
+			currComposition = self.composition
+		else:
+			biggestRad = self.garnetList[0].bigAx
+			currComposition = subComponentList(self.composition, self.totGarnetMol)
 		nextShellRad = biggestRad + self.shellThick
 
 		nextShellCompo = self.getShellCompo(nextShellRad,biggestRad)
-		currComposition = subComponentList(self.composition, self.totGarnetMol)
+		
 
 		# print("Total Composition:")
 		# compoString = ""
