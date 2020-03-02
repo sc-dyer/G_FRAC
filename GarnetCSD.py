@@ -30,7 +30,7 @@ P2 = 12000
 CORE_AVG_INDEX = 3 #Number of cells to average for the core composition
 class GarnetCSD:
 
-	def __init__(self,blobFileName,garnetProfile,rockCompo, rockVolume, sampleName):
+	def __init__(self,blobFileName,garnetProfile,rockCompo, rockVolume, sampleName, numBins = 0):
 
 		self.composition = rockCompo #This is a list of ComponentMol objects that define the rock composition
 		self.grtProfile = garnetProfile #This is the CompoProfile object that is a half profile that defines the zoning in the garnet
@@ -91,6 +91,32 @@ class GarnetCSD:
 		#This is so the profile matches up with the biggest garnet
 
 		self.quickSortCrystals(0,len(self.crystalList)-1)
+		self.numCrystals = []
+		if(numBins > 0):
+			#Break things up into seperate bins
+			binSize = (self.crystalList[0].getDim() - self.crystalList[len(self.crystalList)-1].getDim())/numBins
+			newCrystalList = []
+			
+			
+			hiBin = self.crystalList[0].getDim()
+			#make new crystalList with a crystalSize equal to he highest radius in that bin interval
+			for i in range(numBins):
+				thisInterval = hiBin-i*binSize #each value in bins represent the upperbounds of that bin
+				nextInterval = hiBin-(i+1)*binSize
+				numInBin = 0
+				biggestInBin = Sphere(0)
+				for crystal in self.crystalList:
+					if crystal.getDim() <= thisInterval and crystal.getDim() > nextInterval:
+						numInBin += 1
+						if crystal.getDim() > biggestInBin.getDim():
+							biggestInBin = crystal
+							#the biggest in the bin is the crystal that gets put in the new crystalList
+				if numInBin > 0:
+					newCrystalList.append(biggestInBin)
+					self.numCrystals.append(numInBin)
+
+			self.crystalList = newCrystalList
+
 		travRad = max(self.grtProfile.x) #Radius of the garnet measured in the microprobe profile
 		self.shellThick = self.crystalList[0].getDim()/NUM_SHELLS 
 		#Instead of stretching, lets try extrapolating the core inwards:
@@ -140,7 +166,7 @@ class GarnetCSD:
 			self.quickSortCrystals(low, pi-1)
 			self.quickSortCrystals(pi+1, high)
 
-	def fractionateGarnet(self, radInterval, outputDir, database):
+	def fractionateGarnet(self, outputDir, database, radInterval=0):
 		#A method to fractionate garnet and output the composition at each radInterval
 		writeFile = outputDir + "Output.txt"
 		try: 
@@ -272,12 +298,16 @@ class GarnetCSD:
 	def growGarnetShell(self):
 		#Function to grow an additional shell of garnet
 		#Will add a new garnet once the radius difference between the last garnet and the next one is sufficient
+		
 
 		if len(self.garnetList) == 0: #Initialize first garnet
 			firstShellCompo = self.getShellCompo(self.shellThick,0)
 			self.shellCount = 0 #Number of shells in the biggest garnet
-
-			self.nucleateGarnet(self.crystalList[0],firstShellCompo,self.shellThick)
+			if len(self.numCrystals) == 0:
+				binNum = 1 
+			else:
+				binNum = self.numCrystals[0]
+			self.nucleateGarnet(self.crystalList[0],firstShellCompo,self.shellThick,binNum)
 			print("First garnet nucleated")
 
 		else:
@@ -303,7 +333,11 @@ class GarnetCSD:
 		
 			#This nucleates new garnet when needed:
 			if(self.shellCount > self.shellsAtNextGrt): #This difference shouldnt be greater than 1
-					self.nucleateGarnet(self.crystalList[len(self.garnetList)],nextShellCompo, self.shellThick)
+					if len(self.numCrystals) == 0:
+						binNum = 1 
+					else:
+						binNum = self.numCrystals[0]
+					self.nucleateGarnet(self.crystalList[len(self.garnetList)],nextShellCompo, self.shellThick, binNum)
 
 		self.shellCount +=1
 
@@ -324,13 +358,13 @@ class GarnetCSD:
 
 
 
-	def nucleateGarnet(self, garnetShape,garnetCompo,firstThick):
+	def nucleateGarnet(self, garnetShape,garnetCompo,firstThick,grtsInBin):
 		#Function to nucleate a new garnet with the same aspect ratio of garnet shape
 
 		rescaleFactor = garnetShape.getDim()/firstThick #Determines the scaling factor required to maintain the aspect ratio of a garnet with dimension of shell thickness
 		nucleusShape = garnetShape.getRescale(rescaleFactor)
 
-		nucleus = Garnet(nucleusShape, garnetCompo)
+		nucleus = Garnet(nucleusShape, garnetCompo,numGrt = grtsInBin)
 
 		#Determine nucleation parameters for NEXT garnet
 		if(len(self.crystalList) > len(self.garnetList)+1):
@@ -521,7 +555,7 @@ class GarnetCSD:
 
 		totVolCSD = 0
 		for grt in self.garnetList:
-			totVolCSD += grt.totVol
+			totVolCSD += grt.totVol*grt.numGrt 
 
 		return totVolCSD
 

@@ -28,7 +28,7 @@ print('Choose the csv file for the traverse')
 if isDebug:
 	travIn = "./TestData/TestTrav.csv"
 else:
-	travIn = easygui.fileopenbox('Choose the csv file for the traverse')
+	travIn = easygui.fileopenbox('Choose the csv file for the traverse',default="*.csv")
 
 if travIn != None:
 	travIn = travIn.strip()
@@ -51,7 +51,7 @@ if travIn != None:
 	if isDebug:
 		fileIn = "./TestData/TestGeochem.csv"
 	else:
-		fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored')
+		fileIn = easygui.fileopenbox('Select the csv file where the geochemical data is stored',default="*.csv")
 	
 	geochemDF = pd.read_csv(fileIn)
 
@@ -77,7 +77,11 @@ if travIn != None:
 	
 
 
-
+	#Ask if user wishes to bin the sample
+	msg = "Do you wish to bin the CSD?"
+	title = ""
+	choices = ["Yes","No"]
+	isBinned = easygui.ynbox(msg,title,choices)
 	#Okay now we can have a thing for user input
 	if isDebug:
 		volume = 0.075
@@ -87,7 +91,11 @@ if travIn != None:
 	else:
 		title = "User Input"
 		msg = "Please provide the following information"
-		fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Database Filename","Radius Interval (mm)"]
+		if isBinned:
+			lastField = "Number of bins"
+		else:
+			lastField = "Radius Interval (mm)"
+		fieldNames = ["Scanned Volume (cm^3)","Density (g/cm^3)","Database Filename",lastField]
 
 		fieldValues = easygui.multenterbox(msg,title, fieldNames)
 		# make sure that none of the fields was left blank
@@ -131,7 +139,7 @@ if travIn != None:
 		blobIn = "./TestData/TestBlob.xlsx"
 		outputDir = "./TestData/TestOutputC"
 	else:
-		blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in")
+		blobIn = easygui.fileopenbox("Choose the xlsx file that the blob data is stored in",default="*.xlsx")
 		outputDir = easygui.diropenbox("Select the directory to save output")
 	if os.name == 'nt':#PC
 		outputDir += "\\"
@@ -143,7 +151,7 @@ if travIn != None:
 		#now make the csd
 		scannedCSD = GarnetCSD(blobIn,trav.selectedTrav,composition,volume, name)
 
-		scannedCSD.fractionateGarnet(radInterval,outputDir, database)
+		scannedCSD.fractionateGarnet(outputDir, database,radInterval)
 
 		interpFig = plt.figure(figsize = (12,8))
 		interpAx = interpFig.add_subplot()
