@@ -23,7 +23,7 @@ import copy
 NUM_SHELLS = 4000 #This is the number of garnet shells the biggest garnet will have 
 #DATABASE = "tcdb55c2_COHmelt.txt"
 T1 = 450
-T2 = 650
+T2 = 850
 P1 = 2000
 P2 = 12000
 
@@ -92,6 +92,9 @@ class GarnetCSD:
 
 		self.quickSortCrystals(0,len(self.crystalList)-1)
 		self.numCrystals = []
+
+		#Added support for binning but I dont think its needed
+		#Still the code is here
 		if(numBins > 0):
 			#Break things up into seperate bins
 			binSize = (self.crystalList[0].getDim() - self.crystalList[len(self.crystalList)-1].getDim())/numBins
@@ -166,8 +169,9 @@ class GarnetCSD:
 			self.quickSortCrystals(low, pi-1)
 			self.quickSortCrystals(pi+1, high)
 
-	def fractionateGarnet(self, outputDir, database, radInterval=0):
+	def fractionateGarnet(self, outputDir, database, radInterval=0, memorySave = False):
 		#A method to fractionate garnet and output the composition at each radInterval
+		#Set memorySave to True if you want it to run faster but it wont plot the individual garnets
 		writeFile = outputDir + "Output.txt"
 		try: 
 			outFile = open(writeFile, 'w')
@@ -188,11 +192,11 @@ class GarnetCSD:
 		self.writeScriptFiles(outputDir, 0, database)
 
 		count = 1
-		self.growGarnetShell()
+		self.growGarnetShell(memorySave)
 		garnetPlotList = [0]
 		while(self.garnetList[0].bigAx < self.crystalList[0].getDim()-self.shellThick):
 			#Grow garnet until the biggest garnet is one shell away from its max size
-			self.growGarnetShell()
+			self.growGarnetShell(memorySave)
 			
 			if(abs(self.garnetList[0].bigAx-radInterval*count)<self.shellThick):
 				
@@ -291,11 +295,12 @@ class GarnetCSD:
 		print(stream)
 		outFile.write(stream)
 		outFile.close()
-		for num in garnetPlotList:
-			self.plotGarnet(num, outputDir)
+		if not memorySave:
+			for num in garnetPlotList:
+				self.plotGarnet(num, outputDir)
 		
 
-	def growGarnetShell(self):
+	def growGarnetShell(self, memorySave):
 		#Function to grow an additional shell of garnet
 		#Will add a new garnet once the radius difference between the last garnet and the next one is sufficient
 		
@@ -329,6 +334,8 @@ class GarnetCSD:
 			#Grow each garnet with composition nextShellCompo and thickness of thisShellThick
 			for i in range(len(self.garnetList)):
 				self.garnetList[i] = self.garnetList[i].growGarnet(nextShellCompo, thisShellThick)
+				if memorySave and self.garnetList[i].nextShell != None:
+					del self.garnetList[i].nextShell
 
 		
 			#This nucleates new garnet when needed:

@@ -10,6 +10,8 @@ from ComponentMol import *
 from GarnetComponent import GarnetComponent
 from GarnetComponentMol import GarnetComponentMol
 import copy
+
+
 class Garnet:
 
 	#Base case, the base shape should have the same dimensions of the shell thickness
@@ -46,6 +48,7 @@ class Garnet:
 		self.calcShellMol() 
 		self.calcTotMol()
 
+		#Can add a thing to delete the inner garnet to speed things up but will be unable to moniter the garnet composition
 
 
 

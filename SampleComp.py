@@ -1,6 +1,7 @@
 from Component import Component
 from ComponentMol import *
 from GeochemConst import *
+REMOVE_AP = False #Temporary constant, set as true if you want to remove Ca as apatite
 #A class for handling each record in a table of compositions
 class SampleComp:
     
@@ -17,19 +18,28 @@ class SampleComp:
         self.molArray = []
         feOPos = -1
         fe2O3Pos = -1
+        CaOPos = -1
+        PPos = -1
         for i in range(len(self.wtArray)):
 
             oxideWeight = self.components[i].weight*self.components[i].catNum + self.components[i].catNum*self.components[i].ox2cat*O.weight #Oxide M = M component * cations in oxide + M O * #O in oxide
             weightComponent = (self.wtArray[i]/100)*self.mass
+            
+
 
             mol = self.components[i].catNum*weightComponent/oxideWeight # CatNum * Wt / M gives number of mols of that cation
             thisComponent = ComponentMol(self.components[i],mol)
             self.molArray.append(thisComponent)
+
             if self.components[i].oxName== "FeO":
                 feOPos = i
             elif self.components[i].oxName == "Fe2O3":
                 fe2O3Pos = i
-                
+            
+            if self.components[i].oxName == "CaO":
+                CaOPos = i
+            if self.components[i].oxName == "P2O5":
+                PPos = i
         #Basically if there is both FeO and Fe2O3 in the sample composition then 
         #add them together and put the total in the FeO column and bring the Fe2O3 column with 0
         if feOPos >= 0 and fe2O3Pos >= 0:
@@ -39,8 +49,15 @@ class SampleComp:
         elif fe2O3Pos >=0:
             #Convert to FeO
             self.molArray[fe2O3Pos] = ComponentMol(Fe,self.molArray[fe2O3Pos].mol)
-            
         
+        #This is used if removing Ca with apatite
+        #Calculates the proportion based on a formula Ca5(PO4)3(OH,F,Cl)
+        if CaOPos >= 0 and PPos >= 0 and REMOVE_AP:
+            CaRemoval = self.molArray[PPos].mol*5/3
+            self.molArray[CaOPos].mol -= CaRemoval
+            self.molArray.pop(PPos)
+
+            
           
     def calcO2(self, redCO2, CO2, H2O):
         #Adds to the molArray the amount of O2 that works with the amount of CO2 and H2O

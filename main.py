@@ -77,11 +77,12 @@ if travIn != None:
 	
 
 
-	#Ask if user wishes to bin the sample
-	msg = "Do you wish to bin the CSD?"
-	title = ""
-	choices = ["Yes","No"]
-	isBinned = easygui.ynbox(msg,title,choices)
+	# #Ask if user wishes to bin the sample
+	# msg = "Do you wish to bin the CSD?"
+	# title = ""
+	# choices = ["Yes","No"]
+	# isBinned = easygui.ynbox(msg,title,choices)
+	isBinned = False
 	#Okay now we can have a thing for user input
 	if isDebug:
 		volume = 0.075
@@ -150,8 +151,12 @@ if travIn != None:
 	if blobIn != None:
 		#now make the csd
 		scannedCSD = GarnetCSD(blobIn,trav.selectedTrav,composition,volume, name)
-
-		scannedCSD.fractionateGarnet(outputDir, database,radInterval)
+		msg = "Do you wish to save memory by not plotting the individual garnet compositions? WARNING: Selecting No will cause the program to use a lot of RAM for samples with a lot of garnets"
+		title = ""
+		choices = ["Yes","No"]
+		saveMem = easygui.ynbox(msg,title,choices)
+		#saveMem = True
+		scannedCSD.fractionateGarnet(outputDir, database,radInterval, saveMem)
 
 		interpFig = plt.figure(figsize = (12,8))
 		interpAx = interpFig.add_subplot()
