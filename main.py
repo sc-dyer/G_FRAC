@@ -17,6 +17,7 @@ import re
 import sys
 
 isDebug = False
+
 sys.setrecursionlimit(NUM_SHELLS*3)
 #print(sys.getrecursionlimit())
 SAMPLE_COL = "Name"
@@ -149,6 +150,9 @@ if travIn != None:
 		outputDir += "/"
     
 	if blobIn != None:
+
+
+
 		#now make the csd
 		scannedCSD = GarnetCSD(blobIn,trav.selectedTrav,composition,volume, name)
 		msg = "Do you wish to save memory by not plotting the individual garnet compositions? WARNING: Selecting No will cause the program to use a lot of RAM for samples with a lot of garnets"
@@ -156,14 +160,18 @@ if travIn != None:
 		choices = ["Yes","No"]
 		saveMem = easygui.ynbox(msg,title,choices)
 		#saveMem = True
-		scannedCSD.fractionateGarnet(outputDir, database,radInterval, saveMem)
-
 		interpFig = plt.figure(figsize = (12,8))
 		interpAx = interpFig.add_subplot()
-		trav.selectedTrav.plotInterpolants(interpAx,radInterval)
-		interpFig.savefig(outputDir + "OriginalTrav.svg")
-		plt.show()
 
+		trav.selectedTrav.plotInterpolants(interpAx,radInterval)
+		
+		plt.show()
+		check = easygui.ynbox("Continue?",title,choices)
+		if check:
+			scannedCSD.fractionateGarnet(outputDir, database,radInterval, saveMem)
+
+			interpFig.savefig(outputDir + "OriginalTrav.svg")
+			plt.show()
 	else:
 		print("No blob file chosen, ending program...")
 else:

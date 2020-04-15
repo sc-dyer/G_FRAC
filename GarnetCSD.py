@@ -19,6 +19,8 @@ import pandas as pd
 import easygui
 import math
 import copy
+import sys
+import pdb
 
 NUM_SHELLS = 4000 #This is the number of garnet shells the biggest garnet will have 
 #DATABASE = "tcdb55c2_COHmelt.txt"
@@ -26,6 +28,8 @@ T1 = 450
 T2 = 850
 P1 = 2000
 P2 = 12000
+
+EQ_PARAM = 0.00000001
 
 CORE_AVG_INDEX = 3 #Number of cells to average for the core composition
 class GarnetCSD:
@@ -121,7 +125,15 @@ class GarnetCSD:
 			self.crystalList = newCrystalList
 
 		travRad = max(self.grtProfile.x) #Radius of the garnet measured in the microprobe profile
-		self.shellThick = self.crystalList[0].getDim()/NUM_SHELLS 
+
+		minDiff = sys.float_info.max
+		# for i in range (len(self.crystalList) - 1):
+		# 	radDiff = self.crystalList[i].getDim()-self.crystalList[i+1].getDim()
+		# 	if radDiff > 0:
+		# 		minDiff = min(radDiff,minDiff)
+		#This makes sure that a shell is not bigger than the difference in radius between any two garnets
+		self.shellThick = min(minDiff, self.crystalList[0].getDim()/NUM_SHELLS)
+
 		#Instead of stretching, lets try extrapolating the core inwards:
 		radAdd = self.crystalList[0].getDim() - travRad
 		msg = "Extrapolate to core or stretch profile?"
@@ -195,7 +207,7 @@ class GarnetCSD:
 		self.growGarnetShell(memorySave)
 		garnetPlotList = [0]
 		while(self.garnetList[0].bigAx < self.crystalList[0].getDim()-self.shellThick):
-			#Grow garnet until the biggest garnet is one shell away from its max size
+			#Grow garnet until the biggest garnet is one shell away from its max size (or just over one shell away)
 			self.growGarnetShell(memorySave)
 			
 			if(abs(self.garnetList[0].bigAx-radInterval*count)<self.shellThick):
@@ -298,7 +310,22 @@ class GarnetCSD:
 		if not memorySave:
 			for num in garnetPlotList:
 				self.plotGarnet(num, outputDir)
-		
+
+		# print("\n\n\n")
+		# print("Verifying garnet sizes:")
+		# for i in range(len(self.crystalList)):
+		# 	finalSize = self.garnetList[i].bigAx #+ self.shellThick
+		# 	finalVol = (finalSize**3)*(4/3)*math.pi
+			
+		# 	if finalSize - self.crystalList[i].getDim() > EQ_PARAM:
+		# 		print("Garnet " + str(i+1) + " is too big")
+		# 		print("Rad diff = " + str(finalSize- self.crystalList[i].getDim()))
+		# 		print("Vol diff = " + str(finalVol-self.crystalList[i].getVolume()))
+		# 	elif finalSize - self.crystalList[i].getDim() < EQ_PARAM:
+		# 		print("Garnet " + str(i + 1) + " is too small")
+		# 		print("Rad diff = " + str(self.crystalList[i].getDim()-finalSize))
+		# 		print("Vol diff = " + str(self.crystalList[i].getVolume() - finalVol))
+		# 	print("\n")
 
 	def growGarnetShell(self, memorySave):
 		#Function to grow an additional shell of garnet
@@ -313,6 +340,7 @@ class GarnetCSD:
 			else:
 				binNum = self.numCrystals[0]
 			self.nucleateGarnet(self.crystalList[0],firstShellCompo,self.shellThick,binNum)
+			# print("Shell Thickness = " + str(self.shellThick))
 			print("First garnet nucleated")
 
 		else:
@@ -329,6 +357,7 @@ class GarnetCSD:
 			else:
 				nextShellRad = biggestRad + self.shellExcess
 				thisShellThick = self.shellExcess
+				
 
 			nextShellCompo = self.getShellCompo(nextShellRad,biggestRad)
 			#Grow each garnet with composition nextShellCompo and thickness of thisShellThick
@@ -339,12 +368,17 @@ class GarnetCSD:
 
 		
 			#This nucleates new garnet when needed:
-			if(self.shellCount > self.shellsAtNextGrt): #This difference shouldnt be greater than 1
+			if(self.shellCount > self.shellsAtNextGrt): #This difference shouldnt be greater than 2
+
 					if len(self.numCrystals) == 0:
 						binNum = 1 
 					else:
 						binNum = self.numCrystals[0]
 					self.nucleateGarnet(self.crystalList[len(self.garnetList)],nextShellCompo, self.shellThick, binNum)
+					if self.shellCount == self.shellsAtNextGrt:
+						# print("self.shellCount == self.shellsAtNextGrt")
+						self.growGarnetShell(memorySave)
+
 
 		self.shellCount +=1
 
@@ -372,18 +406,85 @@ class GarnetCSD:
 		nucleusShape = garnetShape.getRescale(rescaleFactor)
 
 		nucleus = Garnet(nucleusShape, garnetCompo,numGrt = grtsInBin)
-
+		if(len(self.garnetList) > 0):
+			lastGrt = len(self.garnetList)-1
+			verifyDiff = self.crystalList[lastGrt].getDim()-self.crystalList[lastGrt+1].getDim()
+			actualDiff = self.garnetList[lastGrt].bigAx - nucleus.bigAx
+			# print("Difference should be " + str(verifyDiff) + " is actually " + str(actualDiff))
 		#Determine nucleation parameters for NEXT garnet
 		if(len(self.crystalList) > len(self.garnetList)+1):
 			thisGrt = len(self.garnetList)
+			
 			nextGrt = thisGrt + 1
 			radDiff = self.crystalList[thisGrt].getDim()-self.crystalList[nextGrt].getDim()
+			if radDiff >= self.shellThick:
+				self.shellsAtNextGrt= int(radDiff/self.shellThick) + self.shellCount #This is the number of shells the biggest garnet when the next garnet nucleates (minus 1)
+				self.shellExcess = radDiff%self.shellThick #This is the thickness of that extra shell
+			else:
+				while abs(radDiff) <= EQ_PARAM:
+					#Nucleates all garnets that have the same size
+					# print("Same radius")
+					self.garnetList.append(nucleus)
+					garnetShape = self.crystalList[len(self.garnetList)]
+					rescaleFactor = garnetShape.getDim()/firstThick #Determines the scaling factor required to maintain the aspect ratio of a garnet with dimension of shell thickness
+					nucleusShape = garnetShape.getRescale(rescaleFactor)
+					nucleus = Garnet(nucleusShape, garnetCompo,numGrt = grtsInBin)
 
-			self.shellsAtNextGrt= int(radDiff/self.shellThick) + self.shellCount #This is the number of shells the biggest garnet when the next garnet nucleates (minus 1)
-			self.shellExcess = radDiff%self.shellThick #This is the thickness of that extra shell
+					lastGrt = len(self.garnetList)-1
+					verifyDiff = self.crystalList[lastGrt].getDim()-self.crystalList[lastGrt+1].getDim()
+					actualDiff = self.garnetList[lastGrt].bigAx - nucleus.bigAx
+					# print("Difference should be " + str(verifyDiff) + " is actually " + str(actualDiff))
+
+					if(len(self.crystalList) > len(self.garnetList)+1):
+						thisGrt = len(self.garnetList)
+						nextGrt = thisGrt + 1
+						radDiff = self.crystalList[thisGrt].getDim()-self.crystalList[nextGrt].getDim()
+
+						self.shellsAtNextGrt= int(radDiff/self.shellThick) + self.shellCount #This is the number of shells the biggest garnet when the next garnet nucleates (minus 1)
+						self.shellExcess = radDiff%self.shellThick #This is the thickness of that extra shell
+					else:
+						self.shellsAtNextGrt = NUM_SHELLS + len(self.garnetList) + 1 #Makes sure no more nucleation occurs
+						self.shellExcess = 0
+						radDiff = sys.float_info.max
+				while radDiff < nucleus.bigAx:
+					#For instances when the difference between this garnet and the next is smaller than the thickness of the shell
+					#Nucleates the next garnet with a smaller initial shell size
+					#pdb.set_trace()
+					# print("Nucleus radius = " + str(nucleus.bigAx))
+					# print("Next garnet radius difference = " + str(radDiff))
+
+					self.garnetList.append(nucleus)
+					firstThick = nucleus.bigAx - radDiff
+					# print("Nucleus radius = " + str(firstThick))
+					garnetShape = self.crystalList[len(self.garnetList)]
+					rescaleFactor = garnetShape.getDim()/firstThick #Determines the scaling factor required to maintain the aspect ratio of a garnet with dimension of shell thickness
+					nucleusShape = garnetShape.getRescale(rescaleFactor)
+					nucleus = Garnet(nucleusShape, garnetCompo,numGrt = grtsInBin)
+
+					lastGrt = len(self.garnetList)-1
+					verifyDiff = self.crystalList[lastGrt].getDim()-self.crystalList[lastGrt+1].getDim()
+					actualDiff = self.garnetList[lastGrt].bigAx - nucleus.bigAx
+					# print("Difference should be " + str(verifyDiff) + " is actually " + str(actualDiff))
+
+					if(len(self.crystalList) > len(self.garnetList)+1):
+						thisGrt = len(self.garnetList)
+						nextGrt = thisGrt + 1
+						radDiff = self.crystalList[thisGrt].getDim()-self.crystalList[nextGrt].getDim()
+						# print("Next garnet radius difference = " + str(radDiff))
+						self.shellsAtNextGrt= int((radDiff-firstThick)/self.shellThick) + self.shellCount + 1#This is the number of shells the biggest garnet when the next garnet nucleates (minus 1)
+						self.shellExcess = (radDiff-firstThick)%self.shellThick #This is the thickness of that extra shell
+					else:
+						self.shellsAtNextGrt = NUM_SHELLS + len(self.garnetList) + 1 #Makes sure no more nucleation occurs
+						self.shellExcess = 0
+						radDiff = sys.float_info.max
+			# print("ShellCount = " + str(self.shellCount))
+			# print("ShellsAtNextGrt = " + str(self.shellsAtNextGrt))
+			# print("\n")
 		else:
 			self.shellsAtNextGrt = NUM_SHELLS + len(self.garnetList) + 1 #Makes sure no more nucleation occurs
 			self.shellExcess = 0
+
+
 		self.garnetList.append(nucleus)
 
 

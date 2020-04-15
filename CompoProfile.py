@@ -140,6 +140,7 @@ class CompoProfile:
 		#Will display lines at each interval or non if interval is 0 or less
 
 		colours = ['green','blue','orange','red']
+		#pltIn.set_xlim(min(self.x),max(self.x))
 		pltAlm = pltIn.twinx()
 
 		pltIn.set_xlabel("x (mm)")
@@ -147,8 +148,10 @@ class CompoProfile:
 
 		pltAlm.set_ylabel("X (Fe)")
 		
-
+		
+		
 		#Plot each interpolated profile
+		maxY = 0
 		for i in range(len(GRT_CMPNT)):
 			pltColour = colours[i]
 			yComp = self.interpComp[i]
@@ -156,12 +159,15 @@ class CompoProfile:
 			if(GRT_CMPNT[i] == ALM):
 				pltAlm.plot(xComp, yComp(xComp), color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
 			else:
+				if max(self.cmpnts[i]) > maxY:
+					maxY = max(self.cmpnts[i])
 				pltIn.plot(xComp, yComp(xComp), color = pltColour, marker = 'None', linestyle = "-", markersize = 7, linewidth = 1, label = GRT_CMPNT[i].cation)
 
 		pltIn.legend(fontsize = 14, loc = 'upper left')
 		pltAlm.legend(fontsize = 14, loc = 'upper right')
-		pltIn.autoscale(False)
-
+		
+		pltIn.set_ylim(0,maxY+0.05*maxY)
+		
 		#Plot the vertical lines at each interval
 		if(interval >= 0):
 			numIntervals = int(max(self.x)/interval)
