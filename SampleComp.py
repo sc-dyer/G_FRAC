@@ -1,7 +1,9 @@
 from Component import Component
 from ComponentMol import *
 from GeochemConst import *
-REMOVE_AP = False #Temporary constant, set as true if you want to remove Ca as apatite
+
+import easygui
+REMOVE_AP = False#Temporary constant, set as true if you want to remove Ca as apatite
 #A class for handling each record in a table of compositions
 class SampleComp:
     
@@ -15,6 +17,10 @@ class SampleComp:
         
     def convertMol(self):
         #Convert wt% to mols as cations!
+        msg = "Do you want to remove Phosphorous as Apatite?"
+        title = ""
+        choices = ["Yes","No"]
+        removeAp = easygui.ynbox(msg,title,choices)
         self.molArray = []
         feOPos = -1
         fe2O3Pos = -1
@@ -52,9 +58,11 @@ class SampleComp:
         
         #This is used if removing Ca with apatite
         #Calculates the proportion based on a formula Ca5(PO4)3(OH,F,Cl)
-        if CaOPos >= 0 and PPos >= 0 and REMOVE_AP:
+        if CaOPos >= 0 and PPos >= 0 and removeAp:
             CaRemoval = self.molArray[PPos].mol*5/3
             self.molArray[CaOPos].mol -= CaRemoval
+            self.molArray.pop(PPos)
+        elif PPos >= 0 and not removeAp:
             self.molArray.pop(PPos)
 
             

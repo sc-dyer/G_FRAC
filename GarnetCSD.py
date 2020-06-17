@@ -24,10 +24,6 @@ import pdb
 
 NUM_SHELLS = 4000 #This is the number of garnet shells the biggest garnet will have 
 #DATABASE = "tcdb55c2_COHmelt.txt"
-T1 = 450
-T2 = 850
-P1 = 2000
-P2 = 12000
 
 EQ_PARAM = 0.00000001
 
@@ -46,6 +42,33 @@ class GarnetCSD:
 
 		blobDF = blobDF.dropna() #Sometimes empty rows at the end mess up calculations
 			
+		#Choose temperature and pressure range:
+		title = "PT range"
+		msg = "Please provide min and max temperature and pressure"
+		
+		fieldNames = ["Tmin","Tmax","Pmin","Pmax"]
+
+		fieldValues = easygui.multenterbox(msg,title, fieldNames)
+		# make sure that none of the fields was left blank
+		# Gotta make things a little bit idiot proof
+		while 1:
+			if fieldValues == None: break
+			errmsg = ""
+			for i in range(len(fieldNames)):
+				if fieldValues[i].strip() == "":
+					errmsg = errmsg + ('"%s" is a required field.\n\n' % fieldNames[i])
+			if errmsg == "": break # no problems found
+			fieldValues = multenterbox(errmsg, title, fieldNames, fieldValues)
+		
+	
+	
+		self.T1 = int(fieldValues[0].strip())
+		self.T2 = int(fieldValues[1].strip())
+		self.P1 = int(fieldValues[2].strip())
+		self.P2 = int(fieldValues[3].strip())
+
+
+
 		#Ask user to choose if using spheres or ellipsoids
 		msg = "Are garnets spheres or ellipsoids?"
 		title = ""
@@ -540,7 +563,7 @@ class GarnetCSD:
 				currComposition[i].mol = 0
 			therin += currComposition[i].element.upper() + "({:7.6f})".format(currComposition[i].mol)
 
-		phaseScript(therin,P1,P2,T1,T2,iterName,thisDir,database)
+		phaseScript(therin,self.P1,self.P2,self.T1,self.T2,iterName,thisDir,database)
 
 		#Now generate the isopleth script files
 		for i in range(len(nextShellCompo)):
@@ -550,7 +573,7 @@ class GarnetCSD:
 			compoStep = round_sig(targetCompo*0.05)
 			compoStart = round_sig(targetCompo - 2*compoStep)
 			compoEnd =round_sig( targetCompo + 2*compoStep)
-			isoScript(therin, P1, P2, T1, T2, iterName, thisDir, database,"GARNET", componentName,compoStart, compoEnd,compoStep)
+			isoScript(therin, self.P1, self.P2, self.T1, self.T2, iterName, thisDir, database,"GARNET", componentName,compoStart, compoEnd,compoStep)
 
 	def getAvgEllipsoid(self, blobIn):
 		#Takes the blobIn as a pandas table

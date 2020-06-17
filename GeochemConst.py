@@ -21,7 +21,7 @@ H = Component("H", 1.008, 1/2, 2, "H2O")
 C = Component("C",12.011, 2, 1, "CO2")
 O = Component("O",15.999,1,1, "O2") #Oxide is O2 1:1 ratio
 
-COMPONENTS = [Si, Al, Fe,Fe3, Mn, Mg, Ca, Na, K, Ti, H, C, O] #No P2O5 because unreliable data, add if desired
+COMPONENTS = [Si, Al, Fe,Fe3, Mn, Mg, Ca, Na, K, Ti, H, C, O, P] #No P2O5 because unreliable data, add if desired
 GRT_DENSITY = 4.19 #Density in g/cm^3
 
 
